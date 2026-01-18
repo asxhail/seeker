@@ -1,16 +1,10 @@
-FROM alpine:latest
-RUN apk update 
-RUN apk add --no-cache \
-git \
-bash \
-musl-dev \
-linux-headers \
-python3 \
-py3-pip gcc \
-python3-dev \
-php php-json openssh
-RUN pip3 install --break-system-packages requests packaging psutil
-WORKDIR /root/seeker
-RUN git clone https://github.com/thewhiteh4t/seeker.git .
-EXPOSE 8080
-ENTRYPOINT ["/root/seeker/seeker.py"]
+FROM php:8.2-cli
+
+# Set the folder to the current directory
+WORKDIR /app
+
+# Copy YOUR modified files (don't download fresh ones)
+COPY . .
+
+# Start the PHP server on port 10000
+CMD php -S 0.0.0.0:10000
