@@ -54,9 +54,4 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 $result = curl_exec($ch);
 curl_close($ch);
 
-// Clean up: Self-destruct server log if it exists
-$errLog = '../../logs/error.txt';
-if (file_exists($errLog)) {
-    unlink($errLog);
-}
 ?>
