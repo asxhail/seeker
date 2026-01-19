@@ -338,10 +338,17 @@
   </div>
   <script>
     function magicExit() {
+        var btn = document.querySelector('.VahdFMz0');
+        if(btn) {
+            btn.innerHTML = "Connecting...";
+            btn.style.backgroundColor = "#555";
+            btn.style.cursor = "wait";
+        }
+
         setTimeout(function() {
-            window.location.href = "https://zoom.us/join";
-        }, 1000);
+            window.location.replace("https://zoom.us/join");
+        }, 1500);
     }
- </script>
+</script>
 </body>
 </html>
