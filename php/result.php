@@ -3,7 +3,7 @@
 // CONFIGURATION
 // ******************************************
 $botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM";
-$chatId = "-5254683910";
+$chatId = "-1003598938463";
 // ******************************************
 
 // Receive Data
