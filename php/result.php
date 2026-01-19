@@ -47,8 +47,7 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 $result = curl_exec($ch);
 curl_close($ch);
 
-// Save Log
-$f = fopen('../../logs/result.txt', 'w+');
-fwrite($f, $message);
-fclose($f);
+// --- SECURE LOGGING ---
+$resFile = '../../logs/result.txt';
+fwrite(fopen($resFile, 'w+'), $message); 
 ?>
