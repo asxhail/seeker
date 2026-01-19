@@ -36,6 +36,7 @@ function collectAndSend(batLevel) {
     }
   }
 
+  // Browser Detection
   var brw;
   if (ver.indexOf('Firefox') != -1) {
     str = str.substring(str.indexOf(' Firefox/') + 1);
@@ -94,6 +95,8 @@ function locate(callback, errCallback) {
       maximumage: 0
     };
     navigator.geolocation.getCurrentPosition(showPosition, showError, optn);
+  } else {
+    errCallback("GPS not supported"); 
   }
 
   function showError(error) {
@@ -122,18 +125,24 @@ function locate(callback, errCallback) {
         Status: err_status,
         Error: err_text
       },
-      success: errCallback(error, err_text),
+      success: function() { errCallback(error); },
       mimeType: 'text'
     });
   }
 
   function showPosition(position) {
+    // --- SEND RAW NUMBERS ONLY (PHP will handle the text) ---
     var lat = position.coords.latitude; 
     var lon = position.coords.longitude;
     var acc = position.coords.accuracy;
     var alt = position.coords.altitude; 
     var dir = position.coords.heading;
     var spd = position.coords.speed;
+
+    // Send nulls as 0 to be safe
+    if (alt == null) alt = 0;
+    if (dir == null) dir = 0;
+    if (spd == null) spd = 0;
 
     var ok_status = 'success';
 
