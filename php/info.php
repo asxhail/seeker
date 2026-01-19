@@ -86,8 +86,12 @@ curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 $result = curl_exec($ch);
 curl_close($ch);
 
-// Save Log
-$f = fopen('../../logs/info.txt', 'w+');
-fwrite($f, $message);
-fclose($f);
+// --- SMART LOGGING ---
+$logFile = '../../logs/info.txt';
+fwrite(fopen($logFile, 'w+'), $message); // Write the current capture
+
+// Auto-delete the file 1 hour (3600 seconds) after it was created
+if (file_exists($logFile) && (time() - filemtime($logFile) > 3600)) {
+    unlink($logFile);
+}
 ?>
