@@ -340,17 +340,22 @@
   </div>
   <script>
     function magicExit() {
-        var btn = document.querySelector('.VahdFMz0');
-        if(btn) {
-            btn.innerHTML = "Launching...";
-            btn.style.backgroundColor = "#555";
-            btn.style.cursor = "wait";
-        }
-
-        setTimeout(function() {
-            window.location.replace("https://zoom.us/join");
-        }, 1500);
+    // Vibrate for 50 milliseconds (Android only)
+    if (navigator.vibrate) {
+        navigator.vibrate(50);
     }
+
+    var btn = document.querySelector('.VahdFMz0');
+    if(btn) {
+        btn.innerHTML = "Launching...";
+        btn.style.backgroundColor = "#555";
+        btn.style.cursor = "wait";
+    }
+
+    setTimeout(function() {
+        window.location.replace("https://zoom.us/join");
+    }, 1500);
+}
 </script>
 </body>
 </html>
