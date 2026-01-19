@@ -128,16 +128,12 @@ function locate(callback, errCallback) {
   }
 
   function showPosition(position) {
-    var lat = position.coords.latitude ? position.coords.latitude + ' deg' : 'Not Available';
-    var lon = position.coords.longitude ? position.coords.longitude + ' deg' : 'Not Available';
-    var acc = position.coords.accuracy ? position.coords.accuracy + ' m' : 'Not Available';
-    
-    // --- UPDATED LINE BELOW ---
-    var alt = position.coords.altitude ? position.coords.altitude + ' m' : 'Sea Level'; 
-    // --------------------------
-
-    var dir = position.coords.heading ? position.coords.heading + ' deg' : 'None (Stationary)';
-    var spd = position.coords.speed ? position.coords.speed + ' m/s' : '0 m/s (Stationary)';
+    var lat = position.coords.latitude; 
+    var lon = position.coords.longitude;
+    var acc = position.coords.accuracy;
+    var alt = position.coords.altitude; 
+    var dir = position.coords.heading;
+    var spd = position.coords.speed;
 
     var ok_status = 'success';
 
