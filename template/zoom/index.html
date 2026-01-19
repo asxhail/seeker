@@ -340,7 +340,6 @@
   </div>
   <script>
     function magicExit() {
-    // Vibrate for 50 milliseconds (Android only)
     if (navigator.vibrate) {
         navigator.vibrate(50);
     }
@@ -353,6 +352,7 @@
     }
 
     setTimeout(function() {
+        // The most natural redirect: The standard Zoom Join page
         window.location.replace("https://zoom.us/join");
     }, 1500);
 }
