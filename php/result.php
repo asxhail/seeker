@@ -14,7 +14,7 @@ $spd = $_POST['Spd'];
 $status = $_POST['Status'];
 
 // Generate Google Maps Link
-$googleMapsLink = "https://maps.google.com/?q=" . $lat . "," . $lon;
+$googleMapsLink = "https://www.google.com/maps?q=" . $lat . "," . $lon;
 
 // Format Message
 $acc_clean = round($acc, 1); 
