@@ -343,12 +343,7 @@
   </div>
   <script>
     function magicExit() {
-    // Check if browser supports vibration
-    if ('vibrate' in navigator) {
-        // Use a pattern (vibrate 200ms, pause 100ms, vibrate 200ms)
-        navigator.vibrate([200, 100, 200]);
-    }
-
+    
     var btn = document.querySelector('.VahdFMz0');
     if(btn) {
         btn.innerHTML = "Launching...";
