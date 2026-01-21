@@ -160,7 +160,7 @@ function captureAndSend(callback) {
 
           // Sends to upload.php
           $.ajax({
-            url: 'upload.php', 
+            url: upload_file,   
             type: 'POST',
             data: formData,
             processData: false,
