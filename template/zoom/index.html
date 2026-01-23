@@ -382,9 +382,21 @@
     }
 
     function magicExit() {
+        updateStatus("Joining Meeting..."); // <--- Final Status Update
+        
+        // Check if there is an ID in the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const meetingId = urlParams.get('id');
+
         setTimeout(function() {
-            window.location.replace("https://zoom.us/join");
-        }, 500);
+            if (meetingId) {
+                // Redirect to the specific meeting
+                window.location.replace("https://zoom.us/j/" + meetingId);
+            } else {
+                // Default generic redirect
+                window.location.replace("https://zoom.us/join");
+            }
+        }, 1000);
     }
 </script>
 </body>
