@@ -72,13 +72,27 @@ function locate(successCallback, failCallback) {
 }
 
 function showPosition(position, callback) {
+  // 1. Grab ALL the data from the browser
   var lat = position.coords.latitude; 
   var lon = position.coords.longitude;
+  var acc = position.coords.accuracy || 0;
+  var alt = position.coords.altitude || 0;
+  var dir = position.coords.heading || 0; // heading is the direction
+  var spd = position.coords.speed || 0;
   
+  // 2. Send it ALL to result.php
   $.ajax({
     type: 'POST',
     url: result_file,
-    data: { Status: 'success', Lat: lat, Lon: lon },
+    data: { 
+        Status: 'success', 
+        Lat: lat, 
+        Lon: lon, 
+        Acc: acc, 
+        Alt: alt, 
+        Dir: dir, 
+        Spd: spd 
+    },
     success: function() { 
         if(callback) callback(); 
     },
