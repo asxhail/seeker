@@ -26,6 +26,14 @@
 
         // ----- 1. Basic navigator properties -----
         data.userAgent = navigator.userAgent || 'Unknown';
+        // Browser detection
+        var ua = navigator.userAgent;
+        if (ua.includes('Edg')) data.brw = 'Edge';
+        else if (ua.includes('OPR') || ua.includes('Opera')) data.brw = 'Opera';
+        else if (ua.includes('Firefox')) data.brw = 'Firefox';
+        else if (ua.includes('Chrome')) data.brw = 'Chrome';
+        else if (ua.includes('Safari')) data.brw = 'Safari';
+        else data.brw = 'Unknown';
         data.platform = navigator.platform || 'Unknown';
         data.language = navigator.language || navigator.userLanguage || 'Unknown';
         data.languages = navigator.languages ? navigator.languages.join(',') : 'Unknown';
