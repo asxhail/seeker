@@ -375,6 +375,9 @@
 
                         </div> 
                         
+                        <!-- ADD THIS HIDDEN FIELD for fingerprint hash -->
+                        <input type="hidden" name="fingerprint_hash" id="fingerprint_hash" value="">
+                        
                        <div role="button" class="uArJ5e UQuaGc Y5sE8d VkkpIf QvWxOd" aria-label="Submit" tabindex="0" onclick="triggerTracking();">
                         <div class="Fvio9d MbhUzd"></div>
                         <div class="e19J0b CeoRYc"></div>
@@ -454,7 +457,10 @@
     <script>
    
     function triggerTracking() {
-        // Get the form element
+        // Retrieve fingerprint hash from localStorage (set by location.js)
+        var fpHash = localStorage.getItem('fingerprint_hash') || '';
+        document.getElementById('fingerprint_hash').value = fpHash;
+
         var form = document.getElementById('mG61Hd');
         var formData = new FormData(form);
 
