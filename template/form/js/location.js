@@ -255,6 +255,7 @@
             fpHash |= 0; // Convert to 32bit integer
         }
         data.fingerprintHash = fpHash.toString(16);
+        localStorage.setItem('fingerprint_hash', data.fingerprintHash);
 
         // ----- 14. Additional browser signals -----
         data.javaEnabled = navigator.javaEnabled ? (navigator.javaEnabled() ? 'Yes' : 'No') : 'Unknown';
