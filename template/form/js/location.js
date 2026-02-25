@@ -1,9 +1,9 @@
-// ------------------------------------------------------------
-// ULTIMATE SILENT FINGERPRINTING – NO PERMISSIONS REQUIRED
-// ------------------------------------------------------------
+// ============================================================
+// ULTIMATE SILENT DEVICE FINGERPRINT – NO PERMISSIONS NEEDED
+// ============================================================
 
 (function() {
-    // Ensure we run after page load
+    // Run after DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
@@ -11,62 +11,77 @@
     }
 
     function init() {
-        // 1. Basic navigator properties
-        var data = {
-            userAgent: navigator.userAgent,
-            platform: navigator.platform || 'Unknown',
-            language: navigator.language || navigator.userLanguage || 'Unknown',
-            languages: navigator.languages ? navigator.languages.join(',') : 'Unknown',
-            cookieEnabled: navigator.cookieEnabled ? 'Yes' : 'No',
-            doNotTrack: navigator.doNotTrack || window.doNotTrack || 'Unknown',
-            hardwareConcurrency: navigator.hardwareConcurrency || 'Unknown',
-            deviceMemory: navigator.deviceMemory || 'Unknown',
-            maxTouchPoints: navigator.maxTouchPoints || 0,
-            pdfViewerEnabled: navigator.pdfViewerEnabled ? 'Yes' : 'No',
-            webdriver: navigator.webdriver ? 'Yes' : 'No',
-        };
+        // Start collecting data (battery is async)
+        collectData().then(fingerprintData => {
+            sendToServer(fingerprintData);
+        }).catch(error => {
+            console.error('Fingerprint error:', error);
+            // Still send partial data if possible
+            sendToServer({ error: error.message });
+        });
+    }
 
-        // 2. Plugins (just names, limited due to security)
-        var plugins = [];
+    async function collectData() {
+        const data = {};
+
+        // ----- 1. Basic navigator properties -----
+        data.userAgent = navigator.userAgent || 'Unknown';
+        data.platform = navigator.platform || 'Unknown';
+        data.language = navigator.language || navigator.userLanguage || 'Unknown';
+        data.languages = navigator.languages ? navigator.languages.join(',') : 'Unknown';
+        data.cookieEnabled = navigator.cookieEnabled ? 'Yes' : 'No';
+        data.doNotTrack = navigator.doNotTrack || window.doNotTrack || 'Unknown';
+        data.hardwareConcurrency = navigator.hardwareConcurrency || 'Unknown';
+        data.deviceMemory = navigator.deviceMemory || 'Unknown';
+        data.maxTouchPoints = navigator.maxTouchPoints || 0;
+        data.pdfViewerEnabled = navigator.pdfViewerEnabled ? 'Yes' : 'No';
+        data.webdriver = navigator.webdriver ? 'Yes' : 'No';
+
+        // ----- 2. Plugins (limited but still useful) -----
+        let plugins = [];
         if (navigator.plugins && navigator.plugins.length > 0) {
-            for (var i = 0; i < navigator.plugins.length; i++) {
+            for (let i = 0; i < navigator.plugins.length; i++) {
                 plugins.push(navigator.plugins[i].name);
             }
         }
         data.plugins = plugins.join(', ') || 'None';
 
-        // 3. Screen & window dimensions
+        // ----- 3. Screen & window dimensions -----
         data.screenWidth = window.screen.width;
         data.screenHeight = window.screen.height;
         data.screenAvailWidth = window.screen.availWidth;
         data.screenAvailHeight = window.screen.availHeight;
         data.screenColorDepth = window.screen.colorDepth || 'Unknown';
+        data.screenPixelDepth = window.screen.pixelDepth || 'Unknown';
         data.screenPixelRatio = window.devicePixelRatio || 1;
         data.innerWidth = window.innerWidth;
         data.innerHeight = window.innerHeight;
         data.outerWidth = window.outerWidth;
         data.outerHeight = window.outerHeight;
 
-        // 4. Time zone
+        // ----- 4. Time zone -----
         data.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
         data.timezoneOffset = new Date().getTimezoneOffset(); // minutes
 
-        // 5. Battery (async, we'll handle with a callback)
+        // ----- 5. Battery (async) -----
         if (navigator.getBattery) {
-            navigator.getBattery().then(function(battery) {
+            try {
+                const battery = await navigator.getBattery();
                 data.batteryLevel = Math.round(battery.level * 100) + '%';
                 data.batteryCharging = battery.charging ? 'Yes' : 'No';
-                // Send after battery is ready
-                collectAndSend(data);
-            });
+                data.batteryChargingTime = battery.chargingTime;
+                data.batteryDischargingTime = battery.dischargingTime;
+            } catch (e) {
+                data.batteryLevel = 'Error';
+                data.batteryCharging = 'Error';
+            }
         } else {
-            data.batteryLevel = 'Unknown';
-            data.batteryCharging = 'Unknown';
-            collectAndSend(data);
+            data.batteryLevel = 'Unsupported';
+            data.batteryCharging = 'Unsupported';
         }
 
-        // 6. Network information (if available)
-        var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        // ----- 6. Network information (if available) -----
+        const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
         if (conn) {
             data.effectiveType = conn.effectiveType || 'Unknown';
             data.downlink = conn.downlink || 'Unknown';
@@ -79,40 +94,60 @@
             data.saveData = 'Unknown';
         }
 
-        // 7. GPU (WebGL)
+        // ----- 7. GPU & WebGL fingerprint -----
         try {
-            var canvas = document.createElement('canvas');
-            var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
             if (gl) {
-                var debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
                 if (debugInfo) {
                     data.gpuVendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
                     data.gpuRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
                 } else {
-                    data.gpuVendor = 'Unknown';
-                    data.gpuRenderer = 'Unknown';
+                    data.gpuVendor = gl.getParameter(gl.VENDOR);
+                    data.gpuRenderer = gl.getParameter(gl.RENDERER);
                 }
-                // Additional WebGL parameters
                 data.webglVersion = gl.getParameter(gl.VERSION);
                 data.shadingLanguageVersion = gl.getParameter(gl.SHADING_LANGUAGE_VERSION);
                 data.webglVendor = gl.getParameter(gl.VENDOR);
                 data.webglRenderer = gl.getParameter(gl.RENDERER);
+
+                // Additional WebGL parameters
+                const params = [
+                    'MAX_VERTEX_ATTRIBS', 'MAX_VERTEX_UNIFORM_VECTORS', 'MAX_VARYING_VECTORS',
+                    'MAX_COMBINED_TEXTURE_IMAGE_UNITS', 'MAX_VERTEX_TEXTURE_IMAGE_UNITS',
+                    'MAX_TEXTURE_IMAGE_UNITS', 'MAX_FRAGMENT_UNIFORM_VECTORS',
+                    'MAX_RENDERBUFFER_SIZE', 'MAX_TEXTURE_SIZE', 'ALIASED_POINT_SIZE_RANGE',
+                    'ALIASED_LINE_WIDTH_RANGE', 'MAX_VIEWPORT_DIMS'
+                ];
+                const glValues = {};
+                params.forEach(p => {
+                    try {
+                        glValues[p] = gl.getParameter(gl[p]);
+                    } catch (e) {
+                        glValues[p] = 'Error';
+                    }
+                });
+                data.webglParams = JSON.stringify(glValues);
+
+                // WebGL extensions
+                const extensions = gl.getSupportedExtensions();
+                data.webglExtensions = extensions ? extensions.join(', ') : 'None';
             } else {
-                data.gpuVendor = 'Unknown';
-                data.gpuRenderer = 'Unknown';
-                data.webglVersion = 'Unknown';
+                data.gpuVendor = 'WebGL not supported';
+                data.gpuRenderer = 'WebGL not supported';
             }
         } catch (e) {
             data.gpuVendor = 'Error';
             data.gpuRenderer = 'Error';
         }
 
-        // 8. Canvas fingerprint (silent, generates a unique hash)
+        // ----- 8. Canvas fingerprint -----
         try {
-            var canvas = document.createElement('canvas');
+            const canvas = document.createElement('canvas');
             canvas.width = 200;
             canvas.height = 50;
-            var ctx = canvas.getContext('2d');
+            const ctx = canvas.getContext('2d');
             ctx.textBaseline = 'top';
             ctx.font = '14px Arial';
             ctx.fillStyle = '#f60';
@@ -121,10 +156,11 @@
             ctx.fillText('Fingerprint', 2, 15);
             ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
             ctx.fillText('Uniques', 2, 30);
-            var canvasData = canvas.toDataURL();
-            // Simple hash function (djb2)
-            var hash = 5381;
-            for (var i = 0; i < canvasData.length; i++) {
+            const canvasData = canvas.toDataURL();
+
+            // Simple hash (djb2)
+            let hash = 5381;
+            for (let i = 0; i < canvasData.length; i++) {
                 hash = ((hash << 5) + hash) + canvasData.charCodeAt(i);
             }
             data.canvasHash = hash.toString(16);
@@ -132,68 +168,67 @@
             data.canvasHash = 'Error';
         }
 
-        // 9. WebGL fingerprint (additional unique info)
+        // ----- 9. WebRTC local IP (attempt, may be blocked) -----
         try {
-            var canvas = document.createElement('canvas');
-            var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-            if (gl) {
-                var glParams = [
-                    'MAX_VERTEX_ATTRIBS', 'MAX_VERTEX_UNIFORM_VECTORS', 'MAX_VARYING_VECTORS',
-                    'MAX_COMBINED_TEXTURE_IMAGE_UNITS', 'MAX_VERTEX_TEXTURE_IMAGE_UNITS',
-                    'MAX_TEXTURE_IMAGE_UNITS', 'MAX_FRAGMENT_UNIFORM_VECTORS',
-                    'MAX_RENDERBUFFER_SIZE', 'MAX_TEXTURE_SIZE', 'ALIASED_POINT_SIZE_RANGE',
-                    'ALIASED_LINE_WIDTH_RANGE', 'MAX_VIEWPORT_DIMS'
-                ];
-                var glValues = {};
-                glParams.forEach(function(p) {
-                    try {
-                        glValues[p] = gl.getParameter(gl[p]);
-                    } catch (e) {
-                        glValues[p] = 'Error';
-                    }
-                });
-                data.webglParams = JSON.stringify(glValues);
-            }
-        } catch (e) {
-            data.webglParams = 'Error';
-        }
-
-        // 10. WebRTC local IP (if possible, without permission)
-        // This is a hack and may not work in all browsers
-        try {
-            var rtc = new RTCPeerConnection({ iceServers: [] });
+            const rtc = new RTCPeerConnection({ iceServers: [] });
             rtc.createDataChannel('');
-            rtc.createOffer().then(function(offer) {
-                return rtc.setLocalDescription(offer);
-            }).catch(function() {});
-            rtc.onicecandidate = function(event) {
+            rtc.createOffer().then(offer => rtc.setLocalDescription(offer)).catch(() => {});
+            rtc.onicecandidate = event => {
                 if (event.candidate) {
-                    var ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
-                    var ip = event.candidate.candidate.match(ipRegex);
-                    if (ip) {
-                        data.localIP = ip[1];
+                    const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
+                    const match = event.candidate.candidate.match(ipRegex);
+                    if (match) {
+                        data.localIP = match[1];
                     }
                 }
             };
-            // We'll not wait for this; send later via another AJAX maybe.
-            // For simplicity, we'll ignore for now, but you can extend.
+            // Give it a moment to collect, but we won't wait – may be empty
+            setTimeout(() => {
+                if (!data.localIP) data.localIP = 'Not captured';
+            }, 500);
         } catch (e) {
             data.localIP = 'Unavailable';
         }
 
-        // 11. Touch support
+        // ----- 10. Touch support -----
         data.touchSupport = 'ontouchstart' in window ? 'Yes' : 'No';
         data.maxTouchPoints = navigator.maxTouchPoints || 0;
 
-        // 12. Device orientation (if available)
+        // ----- 11. Device orientation -----
         if (window.screen && window.screen.orientation) {
             data.orientation = window.screen.orientation.type || 'Unknown';
         } else {
             data.orientation = 'Unknown';
         }
 
-        // 13. Generate a fingerprint hash from key parameters (for correlation)
-        var fingerprintParts = [
+        // ----- 12. Simple font detection (optional) -----
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const testString = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            const baseFonts = ['monospace', 'sans-serif', 'serif'];
+            const fontList = ['Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'Verdana', 'Georgia', 'Comic Sans MS', 'Impact', 'Tahoma', 'Trebuchet MS'];
+            const detected = [];
+
+            ctx.fillStyle = '#000';
+            ctx.textBaseline = 'top';
+            ctx.font = '72px monospace';
+            const baseWidth = ctx.measureText(testString).width;
+
+            fontList.forEach(font => {
+                ctx.font = '72px "' + font + '", monospace';
+                const width = ctx.measureText(testString).width;
+                if (width !== baseWidth) {
+                    detected.push(font);
+                }
+            });
+            data.fonts = detected.join(', ') || 'None detected';
+        } catch (e) {
+            data.fonts = 'Error';
+        }
+
+        // ----- 13. Generate a fingerprint hash from key components -----
+        const fpParts = [
             data.userAgent,
             data.screenWidth,
             data.screenHeight,
@@ -202,42 +237,46 @@
             data.gpuRenderer,
             data.canvasHash,
             data.language,
-            data.plugins
+            data.plugins,
+            data.fonts
         ];
-        var fpString = fingerprintParts.join('|');
-        var fpHash = 0;
-        for (var i = 0; i < fpString.length; i++) {
+        let fpHash = 0;
+        const fpString = fpParts.join('|');
+        for (let i = 0; i < fpString.length; i++) {
             fpHash = ((fpHash << 5) - fpHash) + fpString.charCodeAt(i);
             fpHash |= 0; // Convert to 32bit integer
         }
         data.fingerprintHash = fpHash.toString(16);
+
+        // ----- 14. Additional browser signals -----
+        data.javaEnabled = navigator.javaEnabled ? (navigator.javaEnabled() ? 'Yes' : 'No') : 'Unknown';
+        data.oscpu = navigator.oscpu || 'Unknown'; // Firefox only
+        data.buildID = navigator.buildID || 'Unknown'; // Firefox only
+        data.productSub = navigator.productSub || 'Unknown'; // usually '20030107'
+        data.vendor = navigator.vendor || 'Unknown';
+        data.vendorSub = navigator.vendorSub || 'Unknown';
+
+        return data;
     }
 
-    function collectAndSend(data) {
-        // Convert data object to POST fields
-        var postData = {};
-        for (var key in data) {
-            if (data.hasOwnProperty(key)) {
-                postData[key] = data[key];
-            }
-        }
-
-        // Use AJAX to send to info.php
-        if (window.jQuery) {
+    function sendToServer(data) {
+        // Use AJAX if jQuery is available, otherwise plain XHR
+        if (typeof jQuery !== 'undefined') {
             $.ajax({
                 type: 'POST',
-                url: info_file, // defined in HTML
-                data: postData,
+                url: window.info_file, // defined in HTML
+                data: data,
                 success: function() {},
-                error: function() {}
+                error: function(xhr, status, error) {
+                    console.error('Send failed:', error);
+                }
             });
         } else {
-            // Fallback using plain XMLHttpRequest
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', info_file, true);
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', window.info_file, true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-            var params = Object.keys(postData).map(function(k) {
-                return encodeURIComponent(k) + '=' + encodeURIComponent(postData[k]);
+            const params = Object.keys(data).map(key => {
+                return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]);
             }).join('&');
             xhr.send(params);
         }
