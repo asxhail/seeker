@@ -164,7 +164,7 @@ if (!$hasFile) {
     $caption .= "📎 <b>RESUME</b>\n";
     $caption .= "├ File: " . htmlspecialchars($resume['name']) . "\n";
     $caption .= "├ Size: " . round($resume['size'] / 1024 / 1024, 2) . " MB\n";
-    $caption .= "└ [Attached below]";
+    $caption .= "└ [Attached above]";
 
     // Send document
     sendTelegramDocument($tmpFilePath, $caption);
