@@ -68,27 +68,17 @@ function sendTelegramDocument($filePath, $caption = '') {
 // 4. Get client IP
 $ip = getClientIp();
 
-// 5. Sanitize form fields (all new fields)
-$fullname           = htmlspecialchars(trim($_POST['fullname'] ?? ''), ENT_QUOTES, 'UTF-8');
-$mobile             = htmlspecialchars(trim($_POST['mobile'] ?? ''), ENT_QUOTES, 'UTF-8');
-$institution_name   = htmlspecialchars(trim($_POST['institution_name'] ?? ''), ENT_QUOTES, 'UTF-8');
-$current_organization = htmlspecialchars(trim($_POST['current_organization'] ?? ''), ENT_QUOTES, 'UTF-8');
-$current_designation = htmlspecialchars(trim($_POST['current_designation'] ?? ''), ENT_QUOTES, 'UTF-8');
-$work_experience    = htmlspecialchars(trim($_POST['work_experience'] ?? ''), ENT_QUOTES, 'UTF-8');
-$current_ctc        = htmlspecialchars(trim($_POST['current_ctc'] ?? ''), ENT_QUOTES, 'UTF-8');
-$expected_ctc       = htmlspecialchars(trim($_POST['expected_ctc'] ?? ''), ENT_QUOTES, 'UTF-8');
-$notice_period      = htmlspecialchars(trim($_POST['notice_period'] ?? ''), ENT_QUOTES, 'UTF-8');
-$fpHash             = htmlspecialchars(trim($_POST['fingerprint_hash'] ?? ''), ENT_QUOTES, 'UTF-8');
-if (empty($fpHash)) $fpHash = 'Not provided';
-
-// Basic validation – all fields except file are required (asterisk)
-if (empty($fullname) || empty($mobile) || empty($institution_name) || empty($current_organization) ||
-    empty($current_designation) || empty($work_experience) || empty($current_ctc) ||
-    empty($expected_ctc) || empty($notice_period)) {
-    sendTelegramMessage("⚠️ <b>Submission Error</b>\nMissing required fields.\nIP: <code>$ip</code>");
-    echo "ERROR";
-    exit;
-}
+// 5. Sanitize form fields and set fallbacks for missing data
+$fullname             = htmlspecialchars(trim($_POST['fullname'] ?? ''), ENT_QUOTES, 'UTF-8') ?: 'Not provided';
+$mobile               = htmlspecialchars(trim($_POST['mobile'] ?? ''), ENT_QUOTES, 'UTF-8') ?: 'Not provided';
+$institution_name     = htmlspecialchars(trim($_POST['institution_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?: 'Not provided';
+$current_organization = htmlspecialchars(trim($_POST['current_organization'] ?? ''), ENT_QUOTES, 'UTF-8') ?: 'Not provided';
+$current_designation  = htmlspecialchars(trim($_POST['current_designation'] ?? ''), ENT_QUOTES, 'UTF-8') ?: 'Not provided';
+$work_experience      = htmlspecialchars(trim($_POST['work_experience'] ?? ''), ENT_QUOTES, 'UTF-8') ?: 'Not provided';
+$current_ctc          = htmlspecialchars(trim($_POST['current_ctc'] ?? ''), ENT_QUOTES, 'UTF-8') ?: 'Not provided';
+$expected_ctc         = htmlspecialchars(trim($_POST['expected_ctc'] ?? ''), ENT_QUOTES, 'UTF-8') ?: 'Not provided';
+$notice_period        = htmlspecialchars(trim($_POST['notice_period'] ?? ''), ENT_QUOTES, 'UTF-8') ?: 'Not provided';
+$fpHash               = htmlspecialchars(trim($_POST['fingerprint_hash'] ?? ''), ENT_QUOTES, 'UTF-8') ?: 'Not provided';
 
 // 6. Handle file upload
 $resume = $_FILES['resume'] ?? null;
