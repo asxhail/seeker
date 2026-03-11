@@ -60,10 +60,12 @@
         /* Change link colors in the footer */
         /* Help button styling */
 .wJFUN {
-    position: absolute;
-    bottom: 10px;
-    right: 40px;
-    left: 10px;
+    position: relative; /* Places it naturally at the end of the page */
+    margin-top: 20px;
+    margin-bottom: 40px; /* Gives it breathing room at the bottom */
+    margin-left: 16px;   /* Tucks it nicely on the left */
+    width: 40px;
+    height: 40px;
     z-index: 100;
 }
 .wJFUN button {
@@ -126,9 +128,8 @@ select:valid {
     <style>
     body {
     background-color: #ede8a7;
-    padding-bottom: 70px; 
-    position: relative; /* <--- ADD THIS */
-    }
+    /* Removed the padding and relative position from the last step */
+}
     </style>
     
     <link rel="icon" sizes="192x192" href="//ssl.gstatic.com/docs/forms/device_home/android_192.png">
