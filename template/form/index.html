@@ -60,12 +60,11 @@
         /* Change link colors in the footer */
         /* Help button styling */
 .wJFUN {
-    position: fixed;
-    bottom: 16px;
-    left: 16px; /* This locks it securely to the bottom left */
+    position: absolute;
+    bottom: 10px;
+    right: 40px;
+    left: 10px;
     z-index: 100;
-    width: 40px;
-    height: 40px;
 }
 .wJFUN button {
     background-color: transparent;
@@ -126,8 +125,9 @@ select:valid {
     </style>
     <style>
     body {
-        background-color: #ede8a7;
-        padding-bottom: 70px; /* Gives extra space at the bottom */
+    background-color: #ede8a7;
+    padding-bottom: 70px; 
+    position: relative; /* <--- ADD THIS */
     }
     </style>
     
